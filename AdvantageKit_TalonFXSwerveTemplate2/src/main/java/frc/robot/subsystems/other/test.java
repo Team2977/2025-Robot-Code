@@ -4,18 +4,28 @@
 
 package frc.robot.subsystems.other;
 
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkMax;
+import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 
 public class test extends SubsystemBase {
 
-  public static final SparkMax motor = new SparkMax(0, MotorType.kBrushless);
+  public static final TalonFX elevator1 = new TalonFX(1, "rio");
+  public static final TalonFX elevator2 = new TalonFX(2, "rio");
 
-  public test() {}
+  public test() {
+
+    elevator1.setInverted(false);
+    elevator2.setInverted(false);
+  }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+
+    double speed = RobotContainer.opperator.getRawAxis(1) / 4;
+
+    elevator1.set(speed);
+    elevator2.set(speed);
   }
 }

@@ -57,6 +57,7 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
 
+  @SuppressWarnings("unused")
   private final JoystickButton buttonLB = new JoystickButton(driver, 7);
 
   @SuppressWarnings("unused")
@@ -76,6 +77,8 @@ public class RobotContainer {
 
   @SuppressWarnings("unused")
   private final JoystickButton homeButton = new JoystickButton(driver, 13);
+
+  public static final Joystick opperator = new Joystick(1);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
