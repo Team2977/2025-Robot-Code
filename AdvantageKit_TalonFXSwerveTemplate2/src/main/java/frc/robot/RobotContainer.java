@@ -43,7 +43,7 @@ public class RobotContainer {
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
-  private final Joystick driver = new Joystick(0);
+  public static final Joystick driver = new Joystick(0);
 
   private final JoystickButton buttonA = new JoystickButton(driver, 1);
   private final JoystickButton buttonB = new JoystickButton(driver, 2);
