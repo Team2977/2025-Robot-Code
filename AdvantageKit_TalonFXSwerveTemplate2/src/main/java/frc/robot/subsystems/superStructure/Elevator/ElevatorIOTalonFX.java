@@ -5,4 +5,127 @@
 package frc.robot.subsystems.superStructure.Elevator;
 
 /** Add your docs here. */
-public class ElevatorIOTalonFX {}
+public class ElevatorIOTalonFX {
+  public static final double reduction = 4.0;
+
+  // Hardware
+  private final TalonFX talon;
+  private final TalonFX followerTalon;
+
+  // Config
+  private final TalonFXConfiguration config = new TalonFXConfiguration();
+
+  // Status Signals
+  private final StatusSignal<Angle> position;
+  private final StatusSignal<AngularVelocity> velocity;
+  private final StatusSignal<Voltage> appliedVolts;
+  private final StatusSignal<Current> torqueCurrent;
+  private final StatusSignal<Current> supplyCurrent;
+  private final StatusSignal<Temperature> temp;
+  private final StatusSignal<Voltage> followerAppliedVolts;
+  private final StatusSignal<Current> followerTorqueCurrent;
+  private final StatusSignal<Current> followerSupplyCurrent;
+  private final StatusSignal<Temperature> followerTemp;
+
+  private final Debouncer connectedDebouncer = new Debouncer(0.5);
+
+  private final TorqueCurrentFOC torqueCurrentRequest =
+      new TorqueCurrentFOC(0.0).withUpdateFreqHz(0.0);
+  private final PositionTorqueCurrentFOC positionTorqueCurrentRequest =
+      new PositionTorqueCurrentFOC(0.0).withUpdateFreqHz(0.0);
+  private final VoltageOut voltageRequest = new VoltageOut(0.0).withUpdateFreqHz(0.0);
+
+  public ElevatorIOTalonFX() {
+    talon = new TalonFX(13, "*");
+    followerTalon = new TalonFX(14, "*");
+    followerTalon.setControl(new Follower(talon.getDeviceID(), true));
+
+    // Configure motor
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.Slot0 = new Slot0Configs().withKP(0).withKI(0).withKD(0);
+    config.Feedback.SensorToMechanismRatio = reduction;
+    config.TorqueCurrent.PeakForwardTorqueCurrent = 80.0;
+    config.TorqueCurrent.PeakReverseTorqueCurrent = -80.0;
+    config.CurrentLimits.StatorCurrentLimit = 80.0;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    tryUntilOk(5, () -> talon.getConfigurator().apply(config, 0.25));
+
+    position = talon.getPosition();
+    velocity = talon.getVelocity();
+    appliedVolts = talon.getMotorVoltage();
+    torqueCurrent = talon.getTorqueCurrent();
+    supplyCurrent = talon.getSupplyCurrent();
+    temp = talon.getDeviceTemp();
+    followerAppliedVolts = followerTalon.getMotorVoltage();
+    followerTorqueCurrent = followerTalon.getTorqueCurrent();
+    followerSupplyCurrent = followerTalon.getSupplyCurrent();
+    followerTemp = followerTalon.getDeviceTemp();
+
+    BaseStatusSignal.setUpdateFrequencyForAll(
+        50.0, position, velocity, appliedVolts, torqueCurrent, temp);
+    ParentDevice.optimizeBusUtilizationForAll(talon);
+  }
+
+  @Override
+  public void updateInputs(ElevatorIOInputs inputs) {
+    boolean connected =
+        BaseStatusSignal.refreshAll(
+                position, velocity, appliedVolts, torqueCurrent, supplyCurrent, temp)
+            .isOK();
+    boolean followerConnected =
+        BaseStatusSignal.refreshAll(
+                followerAppliedVolts, followerTorqueCurrent, followerSupplyCurrent, followerTemp)
+            .isOK();
+
+    inputs.motorConnected = connectedDebouncer.calculate(connected);
+    inputs.followerConnected = connectedDebouncer.calculate(followerConnected);
+    inputs.positionRad = Units.rotationsToRadians(position.getValueAsDouble());
+    inputs.velocityRadPerSec = Units.rotationsToRadians(velocity.getValueAsDouble());
+    inputs.appliedVolts =
+        new double[] {appliedVolts.getValueAsDouble(), followerAppliedVolts.getValueAsDouble()};
+    inputs.torqueCurrentAmps =
+        new double[] {torqueCurrent.getValueAsDouble(), followerTorqueCurrent.getValueAsDouble()};
+    inputs.supplyCurrentAmps =
+        new double[] {supplyCurrent.getValueAsDouble(), followerSupplyCurrent.getValueAsDouble()};
+    inputs.tempCelsius = new double[] {temp.getValueAsDouble(), followerTemp.getValueAsDouble()};
+  }
+
+  @Override
+  public void runOpenLoop(double output) {
+    talon.setControl(torqueCurrentRequest.withOutput(output));
+  }
+
+  @Override
+  public void runVolts(double volts) {
+    talon.setControl(voltageRequest.withOutput(volts));
+  }
+
+  @Override
+  public void stop() {
+    talon.stopMotor();
+  }
+
+  @Override
+  public void runPosition(double positionRad, double feedforward) {
+    talon.setControl(
+        positionTorqueCurrentRequest
+            .withPosition(Units.radiansToRotations(positionRad))
+            .withFeedForward(feedforward));
+  }
+
+  @Override
+  public void setPID(double kP, double kI, double kD) {
+    config.Slot0.kP = kP;
+    config.Slot0.kI = kI;
+    config.Slot0.kD = kD;
+    tryUntilOk(5, () -> talon.getConfigurator().apply(config));
+  }
+
+  @Override
+  public void setBrakeMode(boolean enabled) {
+    new Thread(
+            () -> talon.setNeutralMode(enabled ? NeutralModeValue.Brake : NeutralModeValue.Coast))
+        .start();
+  }
+}
