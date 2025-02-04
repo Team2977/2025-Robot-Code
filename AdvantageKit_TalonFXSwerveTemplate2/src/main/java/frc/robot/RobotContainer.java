@@ -7,15 +7,20 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.SuperStructure.Elevator;
+import frc.robot.subsystems.SuperStructure.ElevatorIOSim;
+import frc.robot.subsystems.SuperStructure.ElevatorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -24,6 +29,7 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -38,6 +44,8 @@ public class RobotContainer {
 
   @SuppressWarnings("unused")
   private final Vision vision;
+
+  private final Elevator elevator;
 
   // private final Motor motor;
 
@@ -102,6 +110,7 @@ public class RobotContainer {
                     camera0Name, robotToCamera0)); // Using a default Transform3d
 
         // motor = new Motor("leftElevatorMotor", new MotorIOTalonFX(0, "rio", 40, false, true, 0));
+        elevator = new Elevator("elevator", new ElevatorIOTalonFX());
 
         break;
 
@@ -117,11 +126,10 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    camera0Name, robotToCamera0)); // Using a default Transform3d
-        // drive::addVisionMeasurement,
-        // new VisionIOPhotonVisionSim(
-        //  camera0Name, robotToCamera0, drive::getPose)); // Default Vision for SIM
+                new VisionIOPhotonVisionSim(
+                    camera0Name, robotToCamera0, drive::getPose)); // Using a default Transform3d
+        elevator = new Elevator("elevator", new ElevatorIOSim(DCMotor.getFalcon500(2), 45, 0.3));
+        
 
         // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 0.2,
         // 0.1));
