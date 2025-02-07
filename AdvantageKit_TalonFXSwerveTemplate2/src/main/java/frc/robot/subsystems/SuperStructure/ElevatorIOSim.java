@@ -5,39 +5,37 @@
 package frc.robot.subsystems.SuperStructure;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants;
+import frc.robot.subsystems.SuperStructure.ElevatorState.inputState;
+import frc.robot.subsystems.SuperStructure.ElevatorState.outputState;
 
 /** Add your docs here. */
 public class ElevatorIOSim implements ElevatorIO {
-  private static DCMotorSim sim;
-  private static DCMotorSim followerSim;
+  // private static DCMotorSim sim;
+  // private static DCMotorSim followerSim;
+
+  private final PIDController pidController = new PIDController(0.0, 0.0, 0.0);
   private double appliedVoltage = 0.0;
-  private Mechanism2d elevator = new Mechanism2d(20/*inches */, 100 /* inches */);
-  private MechanismRoot2d root = elevator.getRoot("elevator", 2, 0);
-  private MechanismLigament2d stage2 = new MechanismLigament2d("stage2", 100, 90);
+  private double reduction = 45;
 
+  private final ElevatorSim elevatorSim =
+      new ElevatorSim(
+          DCMotor.getFalcon500(2),
+          reduction,
+          ElevatorConstants.carriageMassKg,
+          ElevatorConstants.drumRatiusMeters,
+          ElevatorConstants.minHightMeters,
+          ElevatorConstants.maxHightMeters,
+          true,
+          ElevatorConstants.minHightMeters,
+          0,
+          0.1);
 
-  private static final DCMotor motorModel = DCMotor.getFalcon500(2);
-  private static final double reduction = 45 /*(18.0 / 12.0)*/;
-  private static final double moi = 0.001;
-
-  public ElevatorIOSim(DCMotor motorModel, double reduction, double moi) {
-    sim =
-        new DCMotorSim(LinearSystemId.createDCMotorSystem(motorModel, moi, reduction), motorModel);
-
-    followerSim =  new DCMotorSim(LinearSystemId.createDCMotorSystem(motorModel, moi, reduction), motorModel);
-    
-  }
-    
-
+  public ElevatorIOSim() {}
 
   @Override
   public void updateInputs(ElevatorIOInputs inputs) {
@@ -46,32 +44,53 @@ public class ElevatorIOSim implements ElevatorIO {
     }
 
     inputs.leaderConnected = true;
-    sim.update(Constants.loopPeriodSecs);
-    inputs.leaderPositionRads = sim.getAngularPositionRad();
-    inputs.leaderVelocityRadsPerSec = sim.getAngularVelocityRadPerSec();
+    // sim.update(Constants.loopPeriodSecs);
+    // inputs.leaderPositionRads = sim.getAngularPositionRad();
+    // inputs.leaderVelocityRadsPerSec = sim.getAngularVelocityRadPerSec();
     inputs.leaderAppliedVoltage = appliedVoltage;
-    inputs.leaderSupplyCurrentAmps = sim.getCurrentDrawAmps();
+    // inputs.leaderSupplyCurrentAmps = sim.getCurrentDrawAmps();
 
     inputs.followerConnected = true;
-    followerSim.update(Constants.loopPeriodSecs);
-    inputs.followerPositionRads = followerSim.getAngularPositionRad();
-    inputs.followerVelocityRadsPerSec = followerSim.getAngularVelocityRadPerSec();
+    // followerSim.update(Constants.loopPeriodSecs);
+    // inputs.followerPositionRads = followerSim.getAngularPositionRad();
+    // inputs.followerVelocityRadsPerSec = followerSim.getAngularVelocityRadPerSec();
     inputs.followerAppliedVoltage = appliedVoltage;
-    inputs.followerSupplyCurrentAmps = followerSim.getCurrentDrawAmps();
-    
-    SmartDashboard.putData("elevator", elevator);
-
+    // inputs.followerSupplyCurrentAmps = followerSim.getCurrentDrawAmps();
   }
 
   @Override
   public void runVoltsElevator(double volts) {
     appliedVoltage = MathUtil.clamp(volts, -12.0, 12.0);
-    sim.setInputVoltage(appliedVoltage);
-    followerSim.setInputVoltage(appliedVoltage);
+    // TODO see how to control the simulation from get/set states
+
   }
 
   @Override
   public void stopElevator() {
     runVoltsElevator(0.0);
+  }
+
+  @Override
+  public void moveToPosition(double goal) {
+    pidController.setTolerance(0.10);
+    // runVoltsElevator(pidController.calculate(sim.getAngularPositionRad(), goal));
+    SmartDashboard.putBoolean("on", true);
+  }
+
+  @Override
+  public inputState getState() {
+    elevatorSim.update(0.02);
+    return new inputState(
+        elevatorSim.getPositionMeters(), elevatorSim.getVelocityMetersPerSecond());
+  }
+
+  @Override
+  public void setState(outputState output) {
+    output
+        .voltage()
+        .ifPresent(
+            (appliedVoltage) -> {
+              elevatorSim.setInputVoltage(appliedVoltage);
+            });
   }
 }

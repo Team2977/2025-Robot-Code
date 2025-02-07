@@ -7,20 +7,20 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.superAssembly.elevatorCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.SuperStructure.Elevator;
 import frc.robot.subsystems.SuperStructure.ElevatorIOSim;
 import frc.robot.subsystems.SuperStructure.ElevatorIOTalonFX;
+import frc.robot.subsystems.SuperStructure.ElevatorSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -39,6 +39,9 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+  public final ElevatorSim sim;
+
   // Subsystems
   private final Drive drive;
 
@@ -48,6 +51,9 @@ public class RobotContainer {
   private final Elevator elevator;
 
   // private final Motor motor;
+
+  // Commands
+  // private static final elevatorUp ELEVATOR_UP = new elevatorUp(ElevatorIO);
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
@@ -110,7 +116,8 @@ public class RobotContainer {
                     camera0Name, robotToCamera0)); // Using a default Transform3d
 
         // motor = new Motor("leftElevatorMotor", new MotorIOTalonFX(0, "rio", 40, false, true, 0));
-        elevator = new Elevator("elevator", new ElevatorIOTalonFX());
+        elevator = new Elevator("elevator", new ElevatorIOTalonFX("rio", 40, false, true, 45));
+        sim = null;
 
         break;
 
@@ -128,11 +135,8 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(
                     camera0Name, robotToCamera0, drive::getPose)); // Using a default Transform3d
-        elevator = new Elevator("elevator", new ElevatorIOSim(DCMotor.getFalcon500(2), 45, 0.3));
-        
-
-        // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 0.2,
-        // 0.1));
+        elevator = new Elevator("elevator", new ElevatorIOSim());
+        sim = new ElevatorSim(elevator);
 
         break;
 
@@ -153,6 +157,8 @@ public class RobotContainer {
 
         // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 1, 0.1));
 
+        elevator = new Elevator("elevatorSim", null);
+        sim = null;
         break;
     }
 
@@ -190,9 +196,9 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> driver.getRawAxis(1) / 2,
-            () -> driver.getRawAxis(0) / 2,
-            () -> -driver.getRawAxis(3) / 2));
+            () -> driver.getRawAxis(1),
+            () -> driver.getRawAxis(0),
+            () -> -driver.getRawAxis(3)));
 
     // Lock to 0° when A button is held
     buttonA.whileTrue(
@@ -226,6 +232,7 @@ public class RobotContainer {
             () -> -driver.getRawAxis(3)));
 
     // buttonLB.whileTrue(DriveCommands.moveMotorTestCom(motor));
+    buttonLB.whileTrue(elevatorCommands.elevatorUp(elevator, () -> 100));
   }
 
   /**

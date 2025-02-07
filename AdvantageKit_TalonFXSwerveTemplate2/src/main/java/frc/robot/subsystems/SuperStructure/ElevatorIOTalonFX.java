@@ -13,22 +13,21 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.subsystems.SuperStructure.ElevatorIO.ElevatorIOInputs;
-import frc.robot.subsystems.other.MotorIO.MotorIOInputs;
+import frc.robot.subsystems.SuperStructure.ElevatorState.inputState;
+import frc.robot.subsystems.SuperStructure.ElevatorState.outputState;
 import frc.robot.util.PhoenixUtil;
-import frc.robot.subsystems.SuperStructure.ElevatorIO;
 
 /** Add your docs here. */
-public class ElevatorIOTalonFX {
-     /** Creates a new MotorIOTalonFX. */
+public class ElevatorIOTalonFX implements ElevatorIO {
+  /** Creates a new MotorIOTalonFX. */
   private final TalonFX leader;
+
   private final TalonFX follower;
 
   private final StatusSignal<Angle> leaderPosition;
@@ -45,18 +44,18 @@ public class ElevatorIOTalonFX {
   private final StatusSignal<Current> followerTorqueCurrent;
   private final StatusSignal<Temperature> followerTempCelsius;
 
-
   // Single shot for voltage mode, robot loop will call continuously
-  private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(false).withUpdateFreqHz(0);
+  private final VoltageOut voltageOut =
+      new VoltageOut(0.0).withEnableFOC(false).withUpdateFreqHz(0);
   private final NeutralOut neutralOut = new NeutralOut();
 
   private final double reduction;
 
   public ElevatorIOTalonFX(
-      int id, String bus, int currentLimitAmps, boolean invert, boolean brake, double reduction) {
+      String bus, int currentLimitAmps, boolean invert, boolean brake, double reduction) {
     this.reduction = reduction;
-    leader = new TalonFX(id, bus);
-    follower = new TalonFX(id, bus);
+    leader = new TalonFX(1, bus); // TODO change device id
+    follower = new TalonFX(2, bus); // TODO change device id
     follower.setControl(new Follower(leader.getDeviceID(), false));
 
     TalonFXConfiguration config = new TalonFXConfiguration();
@@ -67,7 +66,6 @@ public class ElevatorIOTalonFX {
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
     PhoenixUtil.tryUntilOk(5, () -> leader.getConfigurator().apply(config));
     PhoenixUtil.tryUntilOk(5, () -> follower.getConfigurator().apply(config));
-    
 
     leaderPosition = leader.getPosition();
     leaderVelocity = leader.getVelocity();
@@ -96,8 +94,9 @@ public class ElevatorIOTalonFX {
                 leaderTempCelsius));
     PhoenixUtil.tryUntilOk(5, () -> leader.optimizeBusUtilization(0, 1.0));
 
-    PhoenixUtil.tryUntilOk(5, 
-        () -> 
+    PhoenixUtil.tryUntilOk(
+        5,
+        () ->
             BaseStatusSignal.setUpdateFrequencyForAll(
                 50.0,
                 followerPosition,
@@ -105,34 +104,47 @@ public class ElevatorIOTalonFX {
                 followerAppliedVoltage,
                 followerSupplyCurrent,
                 followerTorqueCurrent,
-                followerTempCelsius
-    ));
+                followerTempCelsius));
     PhoenixUtil.tryUntilOk(5, () -> follower.optimizeBusUtilization(0, 1.0));
-  } 
+  }
 
   @Override
   public void updateInputs(ElevatorIOInputs inputs) {
-    //leader
+    // leader
     inputs.leaderConnected =
         BaseStatusSignal.refreshAll(
-                leaderPosition, leaderVelocity, leaderAppliedVoltage, leaderSupplyCurrent, leaderTorqueCurrent, leaderTempCelsius)
+                leaderPosition,
+                leaderVelocity,
+                leaderAppliedVoltage,
+                leaderSupplyCurrent,
+                leaderTorqueCurrent,
+                leaderTempCelsius)
             .isOK();
-    //follower
+    // follower
     inputs.followerConnected =
         BaseStatusSignal.refreshAll(
-                followerPosition, followerVelocity, followerAppliedVoltage, followerSupplyCurrent, followerTorqueCurrent, followerTempCelsius)
+                followerPosition,
+                followerVelocity,
+                followerAppliedVoltage,
+                followerSupplyCurrent,
+                followerTorqueCurrent,
+                followerTempCelsius)
             .isOK();
-    //leader
-    inputs.leaderPositionRads = Units.rotationsToRadians(leaderPosition.getValueAsDouble()) / reduction;
-    inputs.leaderVelocityRadsPerSec = Units.rotationsToRadians(leaderVelocity.getValueAsDouble()) / reduction;
+    // leader
+    inputs.leaderPositionRads =
+        Units.rotationsToRadians(leaderPosition.getValueAsDouble()) / reduction;
+    inputs.leaderVelocityRadsPerSec =
+        Units.rotationsToRadians(leaderVelocity.getValueAsDouble()) / reduction;
     inputs.leaderAppliedVoltage = leaderAppliedVoltage.getValueAsDouble();
     inputs.leaderSupplyCurrentAmps = leaderSupplyCurrent.getValueAsDouble();
     inputs.leaderTorqueCurrentAmps = leaderTorqueCurrent.getValueAsDouble();
     inputs.leaderTempCelsius = leaderTempCelsius.getValueAsDouble();
 
     // follower motor
-    inputs.followerPositionRads = Units.rotationsToRadians(followerPosition.getValueAsDouble()) / reduction;
-    inputs.followerVelocityRadsPerSec = Units.rotationsToRadians(followerVelocity.getValueAsDouble()) / reduction;
+    inputs.followerPositionRads =
+        Units.rotationsToRadians(followerPosition.getValueAsDouble()) / reduction;
+    inputs.followerVelocityRadsPerSec =
+        Units.rotationsToRadians(followerVelocity.getValueAsDouble()) / reduction;
     inputs.followerAppliedVoltage = followerAppliedVoltage.getValueAsDouble();
     inputs.followerSupplyCurrentAmps = followerSupplyCurrent.getValueAsDouble();
     inputs.followerTorqueCurrentAmps = followerTorqueCurrent.getValueAsDouble();
@@ -145,7 +157,22 @@ public class ElevatorIOTalonFX {
   }
 
   @Override
+  public void moveToPosition(double goal) {}
+
+  @Override
   public void stopElevator() {
     leader.stopMotor();
+  }
+
+  @Override
+  public inputState getState() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getState'");
+  }
+
+  @Override
+  public void setState(outputState output) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setState'");
   }
 }

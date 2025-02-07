@@ -8,8 +8,12 @@ import org.littletonrobotics.junction.AutoLog;
 
 /** Add your docs here. */
 public interface ElevatorIO {
+  public ElevatorState.inputState getState();
+
+  public void setState(ElevatorState.outputState output);
+
   @AutoLog
-  public static class ElevatorIOInputs {
+  class ElevatorIOInputs {
     public boolean leaderConnected = false;
     public double leaderPositionRads = 0.0;
     public double leaderVelocityRadsPerSec = 0.0;
@@ -34,4 +38,6 @@ public interface ElevatorIO {
 
   // Stop motor
   default void stopElevator() {}
+
+  default void moveToPosition(double goal) {}
 }
