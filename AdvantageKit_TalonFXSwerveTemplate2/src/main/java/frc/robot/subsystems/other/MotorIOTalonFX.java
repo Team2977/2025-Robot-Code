@@ -33,7 +33,8 @@ public class MotorIOTalonFX implements MotorIO {
   private final StatusSignal<Temperature> tempCelsius;
 
   // Single shot for voltage mode, robot loop will call continuously
-  private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true).withUpdateFreqHz(0);
+  private final VoltageOut voltageOut =
+      new VoltageOut(0.0).withEnableFOC(false).withUpdateFreqHz(0);
   private final NeutralOut neutralOut = new NeutralOut();
 
   private final double reduction;

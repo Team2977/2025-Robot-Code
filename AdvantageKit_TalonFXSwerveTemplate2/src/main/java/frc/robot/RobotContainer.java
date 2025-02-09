@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Superstructure.ElevatorIOSim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -40,6 +41,7 @@ public class RobotContainer {
   private final Vision vision;
 
   // private final Motor motor;
+  public final ElevatorIOSim elevatorSim;
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
@@ -102,6 +104,7 @@ public class RobotContainer {
                     camera0Name, robotToCamera0)); // Using a default Transform3d
 
         // motor = new Motor("leftElevatorMotor", new MotorIOTalonFX(0, "rio", 40, false, true, 0));
+        elevatorSim = null;
 
         break;
 
@@ -125,6 +128,7 @@ public class RobotContainer {
 
         // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 0.2,
         // 0.1));
+        elevatorSim = new ElevatorIOSim();
 
         break;
 
@@ -144,7 +148,7 @@ public class RobotContainer {
                     camera0Name, robotToCamera0)); // Default Vision for DEFAULT
 
         // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 1, 0.1));
-
+        elevatorSim = null;
         break;
     }
 
