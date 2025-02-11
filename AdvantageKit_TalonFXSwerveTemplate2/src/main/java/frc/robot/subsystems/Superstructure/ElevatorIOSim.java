@@ -4,9 +4,11 @@
 
 package frc.robot.subsystems.Superstructure;
 
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
+import static frc.robot.util.PhoenixUtil.tryUntilOk;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -30,31 +32,41 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 /** Add your docs here. */
 public class ElevatorIOSim implements ElevatorIO {
 
+  // motors
   private final DCMotor elevatorGearbox = DCMotor.getFalcon500(2);
+  private final TalonFX falcon = new TalonFX(constantsE.kMotorPort);
+  private final TalonFX falcon2 = new TalonFX(1);
+  private final TalonFXSimState falconSim = new TalonFXSimState(falcon);
+  private final TalonFXSimState falconSim2 = new TalonFXSimState(falcon2);
+  // motor config
+  private final TalonFXConfiguration talonConfig = new TalonFXConfiguration();
+  // encoder
+  private final Encoder encoder =
+      new Encoder(constantsE.kEncoderAChannel, constantsE.kEncoderBChannel);
+  private final EncoderSim encoderSim = new EncoderSim(encoder);
 
+  // colors for elevator simulator
   private final Color8Bit red = new Color8Bit(Color.kRed);
   private final Color8Bit green = new Color8Bit(Color.kGreen);
 
-  // Standard classes for controlling our elevator
+  // elevator pid stuff
+  private double goal = 0;
+  private double feedforwardOutput = 0;
+  private double pidOutput = 0;
+
   private final ProfiledPIDController controller =
       new ProfiledPIDController(
           constantsE.kElevatorKp,
           constantsE.kElevatorKi,
           constantsE.kElevatorKd,
-          new TrapezoidProfile.Constraints(constantsE.kElevatorMaxVelocity, 1000));
+          new TrapezoidProfile.Constraints(constantsE.kElevatorMaxVelocity, 6.6));
   ElevatorFeedforward feedforward =
       new ElevatorFeedforward(
           constantsE.kElevatorkS,
           constantsE.kElevatorkG,
           constantsE.kElevatorkV,
           constantsE.kElevatorkA);
-  private final Encoder encoder =
-      new Encoder(constantsE.kEncoderAChannel, constantsE.kEncoderBChannel);
-  private final TalonFX falcon = new TalonFX(constantsE.kMotorPort);
-  private final MotionMagicConfigs configsMotion = new MotionMagicConfigs();
-  private final TalonFXConfiguration talonConfig = new TalonFXConfiguration();
 
-  // Simulation classes help us simulate what's going on, including gravity.
   private final ElevatorSim elevatorSim =
       new ElevatorSim(
           elevatorGearbox,
@@ -67,24 +79,27 @@ public class ElevatorIOSim implements ElevatorIO {
           0,
           0.01,
           0.0);
-  private final EncoderSim encoderSim = new EncoderSim(encoder);
-  private final TalonFXSimState falconSim = new TalonFXSimState(falcon);
 
   // Create a Mechanism2d visualization of the elevator
-  private final LoggedMechanism2d mech2d = new LoggedMechanism2d(20, 50, red);
+  private final LoggedMechanism2d mech2d =
+      new LoggedMechanism2d(Units.inchesToMeters(20), Units.inchesToMeters(50), red);
   private final LoggedMechanismRoot2d mech2dRoot = mech2d.getRoot("Elevator Root", 10, 0);
   private final LoggedMechanismLigament2d elevatorMech2d =
       mech2dRoot.append(
           new LoggedMechanismLigament2d(
-              "Elevator", elevatorSim.getPositionMeters(), 90, 40, green));
+              "Elevator", elevatorSim.getPositionMeters(), 90, Units.inchesToMeters(20), green));
 
   /** Subsystem constructor. */
   public ElevatorIOSim() {
     encoder.setDistancePerPulse(constantsE.kElevatorEncoderDistPerPulse);
-
+    encoderSim.setDistancePerPulse(constantsE.kElevatorEncoderDistPerPulse);
     // Publish Mechanism2d to SmartDashboard
     // To view the Elevator visualization, select Network Tables -> SmartDashboard -> Elevator Sim
     SmartDashboard.putData("Elevator Sim", mech2d);
+    talonConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    tryUntilOk(5, () -> falcon.getConfigurator().apply(talonConfig));
+    tryUntilOk(5, () -> falcon2.getConfigurator().apply(talonConfig));
 
     /*
     configsMotion.MotionMagicCruiseVelocity = constantsE.kElevatorMaxVelocity;
@@ -105,7 +120,9 @@ public class ElevatorIOSim implements ElevatorIO {
 
   /** Advance the simulation. */
   public void simulationPeriodic() {
-    elevatorSim.setInput(falconSim.getMotorVoltage() * RobotController.getBatteryVoltage());
+    elevatorSim.setInput(
+        (falconSim.getMotorVoltage() + falconSim2.getMotorVoltage())
+            * RobotController.getBatteryVoltage());
     elevatorSim.update(0.020);
     encoderSim.setDistance(elevatorSim.getPositionMeters());
     RoboRioSim.setVInVoltage(
@@ -118,16 +135,51 @@ public class ElevatorIOSim implements ElevatorIO {
    * @param goal the position to maintain
    */
   public void reachGoal(double goal) {
-    controller.setTolerance(Units.inchesToMeters(0.5));
-    double pidOutput = controller.calculate(encoder.getDistance(), goal);
-    double feedforwardOutput = feedforward.calculate(controller.getSetpoint().velocity);
-    falcon.setVoltage(pidOutput + feedforwardOutput);
+    this.goal = goal;
+    pidOutput = controller.calculate(encoder.getDistance(), goal);
+
+    if (!controller.atGoal()) {
+      feedforwardOutput = feedforward.calculate(controller.getSetpoint().velocity);
+    } else {
+      feedforwardOutput = 0;
+    }
+
+    falcon.set(pidOutput + feedforwardOutput);
+    falcon2.set(pidOutput + feedforwardOutput);
+    // logging data
+    SmartDashboard.putNumber("feedforward", feedforwardOutput);
+    Logger.recordOutput("feedforward", feedforwardOutput);
+    Logger.recordOutput("pid output", pidOutput);
+    Logger.recordOutput("PID Goal", goal);
   }
 
   /** Stop the control loop and motor output. */
   public void stop() {
     controller.setGoal(0.0);
     falcon.set(0.0);
+    falcon2.set(0.0);
+  }
+
+  public void updateInputs(ElevatorIOInputs inputs) {
+    inputs.leaderConnected = falcon.isConnected();
+    inputs.leaderPositionRota = falcon.getPosition().getValueAsDouble();
+    inputs.leaderVelocityRotaPerSec = falcon.getVelocity().getValueAsDouble();
+    inputs.leaderAppliedVoltage = falcon.getSupplyVoltage().getValueAsDouble();
+    inputs.leaderSupplyCurrentAmps = falcon.getSupplyCurrent().getValueAsDouble();
+    inputs.leaderTorqueCurrentAmps = falcon.getTorqueCurrent().getValueAsDouble();
+    inputs.leaderTempCelsius = falcon.getDeviceTemp().getValueAsDouble();
+
+    inputs.followerConnected = falcon2.isConnected();
+    inputs.followerPositionRota = falcon2.getPosition().getValueAsDouble();
+    inputs.followerVelocityRotaPerSec = falcon2.getVelocity().getValueAsDouble();
+    inputs.followerAppliedVoltage = falcon2.getSupplyVoltage().getValueAsDouble();
+    inputs.followerSupplyCurrentAmps = falcon2.getSupplyCurrent().getValueAsDouble();
+    inputs.followerTorqueCurrentAmps = falcon2.getTorqueCurrent().getValueAsDouble();
+    inputs.followerTempCelsius = falcon2.getDeviceTemp().getValueAsDouble();
+
+    inputs.goal = goal;
+    inputs.PIDControllerOutput = pidOutput;
+    inputs.feedforwardOutput = feedforwardOutput;
   }
 
   /** Update telemetry, including the mechanism visualization. */
@@ -137,5 +189,6 @@ public class ElevatorIOSim implements ElevatorIO {
     SmartDashboard.putNumber("elvatorpose", encoder.getDistance());
     SmartDashboard.putNumber("elevator goal", controller.getGoal().position);
     Logger.recordOutput("eleSIM", mech2d);
+    SmartDashboard.putNumber("vel", constantsE.kElevatorMaxVelocity);
   }
 }

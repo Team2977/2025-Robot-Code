@@ -6,28 +6,45 @@ package frc.robot.subsystems.Superstructure;
 
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
-import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Temperature;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 
 /** Add your docs here. */
 public class ElevatorIOTalonFX implements ElevatorIO {
   // motors and other objects
   public final TalonFX leader = new TalonFX(1, "rio");
   public final TalonFX follower = new TalonFX(2, "rio");
+  private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
 
-  //
+  // elevator pid values
+  private double goal = 0;
+  private double pidOutput = 0;
+  private double feedforwardOutput = 0;
 
+  private final ProfiledPIDController controller =
+      new ProfiledPIDController(
+          constantsE.constantsTalonFX.ElevatorkP,
+          constantsE.constantsTalonFX.ElevatorkI,
+          constantsE.constantsTalonFX.ElevatorkD,
+          new TrapezoidProfile.Constraints(constantsE.kElevatorMaxVelocity, 6.6));
+
+  private final ElevatorFeedforward feedforward =
+      new ElevatorFeedforward(
+          constantsE.constantsTalonFX.ElevatorkS,
+          constantsE.constantsTalonFX.ElevatorkG,
+          constantsE.constantsTalonFX.ElevatorkV,
+          constantsE.constantsTalonFX.ElevatorkA);
+
+  /* TODO see if this is nessesary for the robot
   // leader
   private final StatusSignal<Angle> leaderPosition;
   private final StatusSignal<AngularVelocity> leaderVelocity;
@@ -41,7 +58,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   private final StatusSignal<Voltage> followerAppliedVoltage;
   private final StatusSignal<Current> followerSupplyCurrent;
   private final StatusSignal<Current> followerTorqueCurrent;
-  private final StatusSignal<Temperature> followerTempCelsius;
+  private final StatusSignal<Temperature> followerTempCelsius;*/
 
   public ElevatorIOTalonFX() {
 
@@ -72,9 +89,14 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     config.HardwareLimitSwitch.ForwardLimitEnable = true;
     config.HardwareLimitSwitch.ForwardLimitSource = ForwardLimitSourceValue.LimitSwitchPin;
 
+    config.Feedback.RotorToSensorRatio = constantsE.constantsTalonFX.gearReduction;
+
+    // TODO stop here for changes
+
     tryUntilOk(5, () -> leader.getConfigurator().apply(config));
     tryUntilOk(5, () -> follower.getConfigurator().apply(config));
 
+    /* TODO see if this is nessesary for the robot
     leaderPosition = leader.getPosition();
     leaderVelocity = leader.getVelocity();
     leaderAppliedVoltage = leader.getMotorVoltage();
@@ -87,6 +109,38 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     followerAppliedVoltage = follower.getMotorVoltage();
     followerSupplyCurrent = follower.getSupplyCurrent();
     followerTorqueCurrent = follower.getTorqueCurrent();
-    followerTempCelsius = follower.getDeviceTemp();
+    followerTempCelsius = follower.getDeviceTemp();*/
+
+  }
+
+  public void updateInputs(ElevatorIOInputs inputs) {
+    inputs.leaderConnected = leader.isConnected();
+    inputs.leaderPositionRota = leader.getPosition().getValueAsDouble();
+    inputs.leaderVelocityRotaPerSec = leader.getVelocity().getValueAsDouble();
+    inputs.leaderAppliedVoltage = leader.getSupplyVoltage().getValueAsDouble();
+    inputs.leaderSupplyCurrentAmps = leader.getSupplyCurrent().getValueAsDouble();
+    inputs.leaderTorqueCurrentAmps = leader.getTorqueCurrent().getValueAsDouble();
+    inputs.leaderTempCelsius = leader.getDeviceTemp().getValueAsDouble();
+
+    inputs.followerConnected = follower.isConnected();
+    inputs.followerPositionRota = follower.getPosition().getValueAsDouble();
+    inputs.followerVelocityRotaPerSec = follower.getVelocity().getValueAsDouble();
+    inputs.followerAppliedVoltage = follower.getSupplyVoltage().getValueAsDouble();
+    inputs.followerSupplyCurrentAmps = follower.getSupplyCurrent().getValueAsDouble();
+    inputs.followerTorqueCurrentAmps = follower.getTorqueCurrent().getValueAsDouble();
+    inputs.followerTempCelsius = follower.getDeviceTemp().getValueAsDouble();
+
+    inputs.goal = goal;
+    inputs.PIDControllerOutput = pidOutput;
+    inputs.feedforwardOutput = feedforwardOutput;
+  }
+
+  @Override
+  public void REALrunToPosition(double goal) {
+    this.goal = goal;
+    pidOutput = controller.calculate(leader.getPosition().getValueAsDouble(), goal);
+    feedforwardOutput = feedforward.calculate(controller.getSetpoint().velocity);
+
+    leader.setControl(motionMagicRequest.withPosition(pidOutput + feedforwardOutput));
   }
 }

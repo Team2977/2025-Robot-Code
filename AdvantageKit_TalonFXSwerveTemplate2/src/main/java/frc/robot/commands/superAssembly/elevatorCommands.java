@@ -8,4 +8,13 @@ package frc.robot.commands.superAssembly;
 public class elevatorCommands {
 
   private elevatorCommands() {}
+
+  /*
+  public static Command moveToPosition(Elevator elevator double goal) {
+    return Commands.run(
+      () -> {
+        elevator.
+      },
+      elevator);
+  }*/
 }

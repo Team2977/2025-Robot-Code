@@ -16,7 +16,10 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.Superstructure.Elevator;
+import frc.robot.subsystems.Superstructure.ElevatorIO;
 import frc.robot.subsystems.Superstructure.ElevatorIOSim;
+import frc.robot.subsystems.Superstructure.ElevatorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -24,7 +27,9 @@ import frc.robot.subsystems.drive.ModuleIO;
 import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -42,6 +47,9 @@ public class RobotContainer {
 
   // private final Motor motor;
   public final ElevatorIOSim elevatorSim;
+
+  @SuppressWarnings("unused")
+  private final Elevator elevator;
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
@@ -102,10 +110,9 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVision(
                     camera0Name, robotToCamera0)); // Using a default Transform3d
-
-        // motor = new Motor("leftElevatorMotor", new MotorIOTalonFX(0, "rio", 40, false, true, 0));
+        // TODO phase out elevatorSim
         elevatorSim = null;
-
+        elevator = new Elevator(new ElevatorIOTalonFX());
         break;
 
       case SIM:
@@ -117,19 +124,14 @@ public class RobotContainer {
                 new ModuleIOSim(TunerConstants.FrontRight),
                 new ModuleIOSim(TunerConstants.BackLeft),
                 new ModuleIOSim(TunerConstants.BackRight));
+
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    camera0Name, robotToCamera0)); // Using a default Transform3d
-        // drive::addVisionMeasurement,
-        // new VisionIOPhotonVisionSim(
-        //  camera0Name, robotToCamera0, drive::getPose)); // Default Vision for SIM
-
-        // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 0.2,
-        // 0.1));
+                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
+        // TODO phase out elevatorSim
         elevatorSim = new ElevatorIOSim();
-
+        elevator = new Elevator(new ElevatorIOSim());
         break;
 
       default:
@@ -143,12 +145,10 @@ public class RobotContainer {
                 new ModuleIO() {});
         vision =
             new Vision(
-                drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    camera0Name, robotToCamera0)); // Default Vision for DEFAULT
-
-        // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 1, 0.1));
+                drive::addVisionMeasurement, new VisionIO() {}); // Default Vision for DEFAULT
+        // TODO phase out elevatorSim
         elevatorSim = null;
+        elevator = new Elevator(new ElevatorIO() {});
         break;
     }
 

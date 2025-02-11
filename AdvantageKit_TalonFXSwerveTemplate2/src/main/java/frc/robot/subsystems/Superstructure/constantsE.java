@@ -14,13 +14,13 @@ public class constantsE {
   public static final int kJoystickPort = 0;
 
   public static final double kElevatorKp = 1;
-  public static final double kElevatorKi = 0.0;
+  public static final double kElevatorKi = 0.01;
   public static final double kElevatorKd = 0.0;
 
   public static final double kElevatorkS = 0.0; // volts (V)                    0.0
   public static final double kElevatorkG = 0.762; // volts (V)                  0.762
   public static final double kElevatorkV = 0.762; // volt per velocity (V/(m/s))    0.762
-  public static final double kElevatorkA = 0.4; // volt per acceleration (V/(m/s²))
+  public static final double kElevatorkA = 0.0; // volt per acceleration (V/(m/s²))
 
   public static final double kElevatorGearing = 45.0;
   public static final double kElevatorDrumRadius = Units.inchesToMeters(0.935);
@@ -41,5 +41,15 @@ public class constantsE {
   public class constantsTalonFX {
 
     public static final double currentLimitAmps = 40;
+    public static final double gearReduction = 45.0;
+
+    public static final double ElevatorkP = 0;
+    public static final double ElevatorkI = 0;
+    public static final double ElevatorkD = 0;
+
+    public static final double ElevatorkS = 0.0; // volts (V)
+    public static final double ElevatorkG = 0.0; // volts (V)
+    public static final double ElevatorkV = 0.0; // volt per velocity (V/(m/s))
+    public static final double ElevatorkA = 0.0; // volt per acceleration (V/(m/s²))
   }
 }
