@@ -4,17 +4,25 @@
 
 package frc.robot.commands.superAssembly;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.Superstructure.Elevator;
+
 /** Add your docs here. */
 public class elevatorCommands {
 
   private elevatorCommands() {}
 
-  /*
-  public static Command moveToPosition(Elevator elevator double goal) {
+  public static Command moveToPositionSIM(Elevator elevator, double goal) {
+
     return Commands.run(
-      () -> {
-        elevator.
-      },
-      elevator);
-  }*/
+            () -> {
+              elevator.runToPosition(goal);
+              SmartDashboard.putBoolean("working????", true);
+            },
+            elevator)
+        // .finallyDo(() -> elevator.runToPosition(0))
+        .finallyDo(() -> SmartDashboard.putBoolean("working????", false));
+  }
 }

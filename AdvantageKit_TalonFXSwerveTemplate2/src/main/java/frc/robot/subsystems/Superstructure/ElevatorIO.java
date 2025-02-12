@@ -4,10 +4,14 @@
 
 package frc.robot.subsystems.Superstructure;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import org.littletonrobotics.junction.AutoLog;
 
 /** Add your docs here. */
 public interface ElevatorIO {
+  // public ElevatorState.inputState getState();
+  // public void setState(ElevatorState.outputState output);
+
   @AutoLog
   class ElevatorIOInputs {
     public boolean leaderConnected = false;
@@ -35,8 +39,16 @@ public interface ElevatorIO {
 
   default void updateTelemetry() {}
 
-  default void runToPosition(double goal) {}
+  default void runToPosition(double goal) {
+    SmartDashboard.putBoolean("in IO", true);
+  }
   // for REAL elevator. the sim elevator uses meters as the goal units. for the REAL one it must be
-  // in motor rotations
+  // in motor rotations or something of the like
   default void REALrunToPosition(double goal) {}
+
+  default void stop() {}
+
+  default void simulationPeriodic() {}
+
+  default void getElevatorPosition() {}
 }

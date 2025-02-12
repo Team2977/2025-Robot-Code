@@ -7,6 +7,7 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -15,9 +16,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.superAssembly.moveElevator;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.Superstructure.Elevator;
-import frc.robot.subsystems.Superstructure.ElevatorIO;
 import frc.robot.subsystems.Superstructure.ElevatorIOSim;
 import frc.robot.subsystems.Superstructure.ElevatorIOTalonFX;
 import frc.robot.subsystems.drive.Drive;
@@ -46,10 +47,10 @@ public class RobotContainer {
   private final Vision vision;
 
   // private final Motor motor;
-  public final ElevatorIOSim elevatorSim;
+  // public final ElevatorIOSim elevatorSim;
 
   @SuppressWarnings("unused")
-  private final Elevator elevator;
+  public final Elevator elevator;
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
@@ -88,7 +89,12 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final JoystickButton homeButton = new JoystickButton(driver, 13);
 
+  // opperator
   public static final Joystick opperator = new Joystick(1);
+  private static final JoystickButton opperatorButton1 = new JoystickButton(opperator, 1);
+  private static final JoystickButton opperatorButton2 = new JoystickButton(opperator, 2);
+  private static final JoystickButton opperatorButton3 = new JoystickButton(opperator, 3);
+  public static final JoystickButton opperatorButton4 = new JoystickButton(opperator, 4);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -111,7 +117,7 @@ public class RobotContainer {
                 new VisionIOPhotonVision(
                     camera0Name, robotToCamera0)); // Using a default Transform3d
         // TODO phase out elevatorSim
-        elevatorSim = null;
+        // elevatorSim = null;
         elevator = new Elevator(new ElevatorIOTalonFX());
         break;
 
@@ -130,7 +136,7 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
         // TODO phase out elevatorSim
-        elevatorSim = new ElevatorIOSim();
+        // elevatorSim = new ElevatorIOSim();
         elevator = new Elevator(new ElevatorIOSim());
         break;
 
@@ -147,8 +153,8 @@ public class RobotContainer {
             new Vision(
                 drive::addVisionMeasurement, new VisionIO() {}); // Default Vision for DEFAULT
         // TODO phase out elevatorSim
-        elevatorSim = null;
-        elevator = new Elevator(new ElevatorIO() {});
+        // elevatorSim = null;
+        elevator = null;
         break;
     }
 
@@ -222,6 +228,11 @@ public class RobotContainer {
             () -> -driver.getRawAxis(3)));
 
     // buttonLB.whileTrue(DriveCommands.moveMotorTestCom(motor));
+
+    opperatorButton1.whileTrue(new moveElevator(elevator, Units.inchesToMeters(100)));
+    opperatorButton2.whileTrue(new moveElevator(elevator, Units.inchesToMeters(150)));
+    opperatorButton3.whileTrue(new moveElevator(elevator, Units.inchesToMeters(50)));
+    opperatorButton4.whileTrue(new moveElevator(elevator, Units.inchesToMeters(0)));
   }
 
   /**

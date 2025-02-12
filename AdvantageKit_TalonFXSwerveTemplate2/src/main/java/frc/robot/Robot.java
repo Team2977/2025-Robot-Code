@@ -16,7 +16,6 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Threads;
@@ -123,7 +122,7 @@ public class Robot extends LoggedRobot {
 
     // Return to normal thread priority
     Threads.setCurrentThreadPriority(false, 10);
-    robotContainer.elevatorSim.updateTelemetry();
+    // robotContainer.elevator.updateTelemetry();
   }
 
   /** This function is called once when the robot is disabled. */
@@ -177,17 +176,6 @@ public class Robot extends LoggedRobot {
     }
     SmartDashboard.putBoolean("is red team", ali);
     SmartDashboard.putBoolean("has team", alliance.isPresent());
-
-    // TODO turn the elevator commands into actual commands
-    if (robotContainer.driver.getRawButton(1)) {
-      robotContainer.elevatorSim.reachGoal(Units.inchesToMeters(100));
-    } else if (robotContainer.driver.getRawButton(2)) {
-      robotContainer.elevatorSim.reachGoal(Units.inchesToMeters(50));
-    } else if (robotContainer.driver.getRawButton(3)) {
-      robotContainer.elevatorSim.reachGoal(Units.inchesToMeters(150));
-    } else {
-      robotContainer.elevatorSim.reachGoal(0);
-    }
   }
 
   /** This function is called once when test mode is enabled. */
@@ -207,7 +195,5 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {
-    robotContainer.elevatorSim.simulationPeriodic();
-  }
+  public void simulationPeriodic() {}
 }

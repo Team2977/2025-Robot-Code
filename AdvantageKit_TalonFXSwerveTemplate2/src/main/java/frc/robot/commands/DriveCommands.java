@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.other.Motor;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -423,17 +422,6 @@ public class DriveCommands {
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()))
         .beforeStarting(() -> xController.reset(drive.getPose().getX()))
         .beforeStarting(() -> yController.reset(drive.getPose().getY()));
-  }
-
-  public static Command moveMotorTestCom(Motor motor) {
-
-    return Commands.run(
-            () -> {
-              motor.runMotor(4);
-              SmartDashboard.putBoolean("comand on", true);
-            },
-            motor)
-        .finallyDo(() -> SmartDashboard.putBoolean("comand on", false));
   }
 
   // ###################################### FEEDFORWARD

@@ -7,16 +7,19 @@ package frc.robot.subsystems.Superstructure;
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.ForwardLimitSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.signals.ReverseLimitSourceValue;
+import com.ctre.phoenix6.signals.ReverseLimitTypeValue;
 import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.robot.Constants;
 
 /** Add your docs here. */
 public class ElevatorIOTalonFX implements ElevatorIO {
@@ -24,6 +27,8 @@ public class ElevatorIOTalonFX implements ElevatorIO {
   public final TalonFX leader = new TalonFX(1, "rio");
   public final TalonFX follower = new TalonFX(2, "rio");
   private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
+
+  private Follower slave = new Follower(leader.getDeviceID(), false);
 
   // elevator pid values
   private double goal = 0;
@@ -84,12 +89,15 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     config.Slot0.kI = 0;
     config.Slot0.kD = 0;
 
-    config.HardwareLimitSwitch.ForwardLimitAutosetPositionEnable = true;
-    config.HardwareLimitSwitch.ForwardLimitAutosetPositionValue = 0;
-    config.HardwareLimitSwitch.ForwardLimitEnable = true;
-    config.HardwareLimitSwitch.ForwardLimitSource = ForwardLimitSourceValue.LimitSwitchPin;
+    config.HardwareLimitSwitch.ReverseLimitAutosetPositionEnable = true;
+    config.HardwareLimitSwitch.ReverseLimitAutosetPositionValue = 0;
+    config.HardwareLimitSwitch.ReverseLimitEnable = true;
+    config.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.LimitSwitchPin;
+    config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
 
     config.Feedback.RotorToSensorRatio = constantsE.constantsTalonFX.gearReduction;
+    // TODO take a look at this
+    // config.Feedback.SensorToMechanismRatio
 
     // TODO stop here for changes
 
@@ -141,6 +149,22 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     pidOutput = controller.calculate(leader.getPosition().getValueAsDouble(), goal);
     feedforwardOutput = feedforward.calculate(controller.getSetpoint().velocity);
 
-    leader.setControl(motionMagicRequest.withPosition(pidOutput + feedforwardOutput));
+    // TODO make this work later
+    leader.setControl(motionMagicRequest.withPosition(Constants.elevatorGoal));
+    follower.setControl(slave);
   }
+  /*
+  @Override
+  public inputState getState() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getState'");
+  }
+
+  @Override
+  public void setState(outputState output) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setState'");
+  }*/
+
+  public void updateTelemetry() {}
 }

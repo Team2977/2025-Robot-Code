@@ -8,18 +8,21 @@ import edu.wpi.first.math.util.Units;
 
 /** Add your docs here. */
 public class constantsE {
+
+  public static double GoalElevator = 0;
+
   public static final int kMotorPort = 0;
   public static final int kEncoderAChannel = 0;
   public static final int kEncoderBChannel = 1;
   public static final int kJoystickPort = 0;
 
-  public static final double kElevatorKp = 1;
-  public static final double kElevatorKi = 0.01;
-  public static final double kElevatorKd = 0.0;
+  public static final double kElevatorKp = 10;
+  public static final double kElevatorKi = 1;
+  public static final double kElevatorKd = 0.1;
 
   public static final double kElevatorkS = 0.0; // volts (V)                    0.0
-  public static final double kElevatorkG = 0.762; // volts (V)                  0.762
-  public static final double kElevatorkV = 0.762; // volt per velocity (V/(m/s))    0.762
+  public static final double kElevatorkG = 0.35; // volts (V)                  0.762
+  public static final double kElevatorkV = 0.35; // volt per velocity (V/(m/s))    0.762
   public static final double kElevatorkA = 0.0; // volt per acceleration (V/(m/s²))
 
   public static final double kElevatorGearing = 45.0;

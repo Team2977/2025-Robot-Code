@@ -8,10 +8,16 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
+import frc.robot.Constants.Mode;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 /** Add your docs here. */
 public class Elevator extends SubsystemBase {
+
   private final ElevatorIO io;
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final Alert disconected;
@@ -31,8 +37,19 @@ public class Elevator extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     io.updateTelemetry();
+    if (Constants.currentMode == Mode.SIM) {
+      io.simulationPeriodic();
+    }
   }
   // TODO add runToPosition here. look into what is required to make it work. do I need
   // InstantCommand.run() ?
 
+  @AutoLogOutput
+  public Command runToPosition(double goal) {
+    // return runEnd(() -> io.runToPosition(goal), () -> io.stop());
+
+    return runEnd(
+        () -> SmartDashboard.putBoolean("got here", true),
+        () -> SmartDashboard.putBoolean("got here", false));
+  }
 }
