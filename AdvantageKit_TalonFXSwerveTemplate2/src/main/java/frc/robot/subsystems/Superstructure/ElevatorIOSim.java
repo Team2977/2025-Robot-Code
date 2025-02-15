@@ -52,6 +52,7 @@ public class ElevatorIOSim implements ElevatorIO {
   // elevator pid stuff
   private double goal = 0;
   private double feedforwardOutput = 0;
+
   private double pidOutput = 0;
 
   private final ProfiledPIDController controller =

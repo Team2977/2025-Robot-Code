@@ -20,13 +20,15 @@ import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import frc.robot.Constants;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
 public class ElevatorIOTalonFX implements ElevatorIO {
   // motors and other objects
   public final TalonFX leader = new TalonFX(1, "rio");
   public final TalonFX follower = new TalonFX(2, "rio");
-  private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
+  @AutoLogOutput private final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
 
   private Follower slave = new Follower(leader.getDeviceID(), false);
 
@@ -48,22 +50,6 @@ public class ElevatorIOTalonFX implements ElevatorIO {
           constantsE.constantsTalonFX.ElevatorkG,
           constantsE.constantsTalonFX.ElevatorkV,
           constantsE.constantsTalonFX.ElevatorkA);
-
-  /* TODO see if this is nessesary for the robot
-  // leader
-  private final StatusSignal<Angle> leaderPosition;
-  private final StatusSignal<AngularVelocity> leaderVelocity;
-  private final StatusSignal<Voltage> leaderAppliedVoltage;
-  private final StatusSignal<Current> leaderSupplyCurrent;
-  private final StatusSignal<Current> leaderTorqueCurrent;
-  private final StatusSignal<Temperature> leaderTempCelsius;
-  // follower
-  private final StatusSignal<Angle> followerPosition;
-  private final StatusSignal<AngularVelocity> followerVelocity;
-  private final StatusSignal<Voltage> followerAppliedVoltage;
-  private final StatusSignal<Current> followerSupplyCurrent;
-  private final StatusSignal<Current> followerTorqueCurrent;
-  private final StatusSignal<Temperature> followerTempCelsius;*/
 
   public ElevatorIOTalonFX() {
 
@@ -95,7 +81,12 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     config.HardwareLimitSwitch.ReverseLimitSource = ReverseLimitSourceValue.LimitSwitchPin;
     config.HardwareLimitSwitch.ReverseLimitType = ReverseLimitTypeValue.NormallyOpen;
 
+    config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+    // TODO must find this. give some leaway.
+    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 100;
+
     config.Feedback.RotorToSensorRatio = constantsE.constantsTalonFX.gearReduction;
+
     // TODO take a look at this
     // config.Feedback.SensorToMechanismRatio
 
@@ -103,22 +94,6 @@ public class ElevatorIOTalonFX implements ElevatorIO {
 
     tryUntilOk(5, () -> leader.getConfigurator().apply(config));
     tryUntilOk(5, () -> follower.getConfigurator().apply(config));
-
-    /* TODO see if this is nessesary for the robot
-    leaderPosition = leader.getPosition();
-    leaderVelocity = leader.getVelocity();
-    leaderAppliedVoltage = leader.getMotorVoltage();
-    leaderSupplyCurrent = leader.getSupplyCurrent();
-    leaderTorqueCurrent = leader.getTorqueCurrent();
-    leaderTempCelsius = leader.getDeviceTemp();
-
-    followerPosition = follower.getPosition();
-    followerVelocity = follower.getVelocity();
-    followerAppliedVoltage = follower.getMotorVoltage();
-    followerSupplyCurrent = follower.getSupplyCurrent();
-    followerTorqueCurrent = follower.getTorqueCurrent();
-    followerTempCelsius = follower.getDeviceTemp();*/
-
   }
 
   public void updateInputs(ElevatorIOInputs inputs) {
@@ -141,6 +116,8 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     inputs.goal = goal;
     inputs.PIDControllerOutput = pidOutput;
     inputs.feedforwardOutput = feedforwardOutput;
+
+    Logger.recordOutput("Elevator goal", Constants.elevatorGoal);
   }
 
   @Override
@@ -150,6 +127,7 @@ public class ElevatorIOTalonFX implements ElevatorIO {
     feedforwardOutput = feedforward.calculate(controller.getSetpoint().velocity);
 
     // TODO make this work later
+
     leader.setControl(motionMagicRequest.withPosition(Constants.elevatorGoal));
     follower.setControl(slave);
   }

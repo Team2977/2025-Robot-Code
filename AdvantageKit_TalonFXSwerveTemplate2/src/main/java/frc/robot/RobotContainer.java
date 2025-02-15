@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.Mode;
 import frc.robot.commands.DriveCommands;
 import frc.robot.commands.superAssembly.moveElevator;
 import frc.robot.generated.TunerConstants;
@@ -43,50 +44,25 @@ public class RobotContainer {
   // Subsystems
   private final Drive drive;
 
-  @SuppressWarnings("unused")
   private final Vision vision;
 
-  // private final Motor motor;
-  // public final ElevatorIOSim elevatorSim;
-
-  @SuppressWarnings("unused")
   public final Elevator elevator;
 
-  // Controller
-  // private final CommandXboxController controller = new CommandXboxController(0);
+  // Driver controller
   public static final Joystick driver = new Joystick(0);
 
   private final JoystickButton buttonA = new JoystickButton(driver, 1);
   private final JoystickButton buttonB = new JoystickButton(driver, 2);
-
-  @SuppressWarnings("unused")
   private final JoystickButton rightPaddle = new JoystickButton(driver, 3);
-
   private final JoystickButton buttonX = new JoystickButton(driver, 4);
   private final JoystickButton buttonY = new JoystickButton(driver, 5);
-
-  @SuppressWarnings("unused")
   private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonLB = new JoystickButton(driver, 7);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonRB = new JoystickButton(driver, 8);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonLT = new JoystickButton(driver, 9);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonRT = new JoystickButton(driver, 10);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonStart = new JoystickButton(driver, 11);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonBack = new JoystickButton(driver, 12);
-
-  @SuppressWarnings("unused")
   private final JoystickButton homeButton = new JoystickButton(driver, 13);
 
   // opperator
@@ -227,12 +203,13 @@ public class RobotContainer {
             () -> -driver.getRawAxis(0),
             () -> -driver.getRawAxis(3)));
 
-    // buttonLB.whileTrue(DriveCommands.moveMotorTestCom(motor));
-
+    // FOR TESTING POURPOSES ONLY
+    if (Constants.currentMode == Mode.SIM) {}
     opperatorButton1.whileTrue(new moveElevator(elevator, Units.inchesToMeters(100)));
     opperatorButton2.whileTrue(new moveElevator(elevator, Units.inchesToMeters(150)));
     opperatorButton3.whileTrue(new moveElevator(elevator, Units.inchesToMeters(50)));
-    opperatorButton4.whileTrue(new moveElevator(elevator, Units.inchesToMeters(0)));
+    // opperatorButton4.whileTrue(new moveElevator(elevator, Units.inchesToMeters(0)));
+    opperatorButton4.whileTrue(elevator.runToPosition(0));
   }
 
   /**

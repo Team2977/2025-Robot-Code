@@ -4,13 +4,39 @@
 
 package frc.robot.subsystems.Superstructure.minip;
 
-import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 /** Add your docs here. */
-public class minip extends SubsystemBase {
-  public static final TalonFX talon = new TalonFX(0);
-  public static final TalonFX talon1 = new TalonFX(0);
-  public static final TalonFX talon2 = new TalonFX(0);
-  public static final TalonFX talon3 = new TalonFX(0);
+public class Minip extends SubsystemBase {
+  private final String name = "Minip";
+  private final MinipIO io;
+  private final MinipIOInputsAutoLogged inputs = new MinipIOInputsAutoLogged();
+  private final Alert disconected1;
+  private final Alert disconected2;
+  private final Timer stateTimer = new Timer();
+
+  public Minip(MinipIO io) {
+    this.io = io;
+
+    disconected1 = new Alert("ulator Disconected!", Alert.AlertType.kWarning);
+    disconected2 = new Alert("ulatorSlave Disconected!", Alert.AlertType.kWarning);
+    stateTimer.start();
+  }
+
+  public void periodic() {
+    io.updateInputs(inputs);
+    Logger.processInputs(name, inputs);
+    disconected1.set(!inputs.ulatorConnected);
+    disconected2.set(!inputs.ulatorSlaveConnected);
+  }
+
+  /*
+  @AutoLogOutput
+  public Command runUlator(double volts) {
+    return startEnd(() -> , null)
+  }*/
+
 }
