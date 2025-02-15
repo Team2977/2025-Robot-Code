@@ -4,8 +4,8 @@
 
 package frc.robot.subsystems.other;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.ctre.phoenix6.hardware.TalonFX;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ClimberSubsystem extends SubsystemBase {
   private final TalonFX climbMotor;
@@ -13,7 +13,6 @@ public class ClimberSubsystem extends SubsystemBase {
   public ClimberSubsystem() {
 
     climbMotor = new TalonFX(0);
-
   }
 
   @Override
@@ -24,6 +23,5 @@ public class ClimberSubsystem extends SubsystemBase {
   public void setClimbSpeed(double climbSpeed) {
 
     climbMotor.set(climbSpeed);
-
   }
 }

@@ -15,7 +15,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.minipIntake;
+import frc.robot.commands.minipOut;
+import frc.robot.commands.moveElevator;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.SuperStructure.climber;
+import frc.robot.subsystems.SuperStructure.elevator;
+import frc.robot.subsystems.SuperStructure.minip;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.drive.GyroIO;
 import frc.robot.subsystems.drive.GyroIOPigeon2;
@@ -39,7 +45,9 @@ public class RobotContainer {
   @SuppressWarnings("unused")
   private final Vision vision;
 
-  // private final Motor motor;
+  private final elevator ELEVATOR = new elevator();
+  private final minip MINIP = new minip();
+  public final climber CLIMBER = new climber();
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
@@ -47,38 +55,27 @@ public class RobotContainer {
 
   private final JoystickButton buttonA = new JoystickButton(driver, 1);
   private final JoystickButton buttonB = new JoystickButton(driver, 2);
-
-  @SuppressWarnings("unused")
   private final JoystickButton rightPaddle = new JoystickButton(driver, 3);
-
   private final JoystickButton buttonX = new JoystickButton(driver, 4);
   private final JoystickButton buttonY = new JoystickButton(driver, 5);
-
-  @SuppressWarnings("unused")
   private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonLB = new JoystickButton(driver, 7);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonRB = new JoystickButton(driver, 8);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonLT = new JoystickButton(driver, 9);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonRT = new JoystickButton(driver, 10);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonStart = new JoystickButton(driver, 11);
-
-  @SuppressWarnings("unused")
   private final JoystickButton buttonBack = new JoystickButton(driver, 12);
-
-  @SuppressWarnings("unused")
   private final JoystickButton homeButton = new JoystickButton(driver, 13);
 
   public static final Joystick opperator = new Joystick(1);
+
+  private static final JoystickButton oppButtonA = new JoystickButton(opperator, 1);
+  private static final JoystickButton oppButtonB = new JoystickButton(opperator, 2);
+  private static final JoystickButton oppButtonX = new JoystickButton(opperator, 3);
+  private static final JoystickButton oppButtonY = new JoystickButton(opperator, 4);
+  private static final JoystickButton oppButtonLB = new JoystickButton(opperator, 5);
+  private static final JoystickButton oppButtonRB = new JoystickButton(opperator, 6);
+  private static final JoystickButton oppButton7 = new JoystickButton(opperator, 7);
 
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
@@ -184,7 +181,7 @@ public class RobotContainer {
             drive,
             () -> driver.getRawAxis(1) / 2,
             () -> driver.getRawAxis(0) / 2,
-            () -> -driver.getRawAxis(3) / 2));
+            () -> -driver.getRawAxis(4) / 2));
 
     // Lock to 0° when A button is held
     buttonA.whileTrue(
@@ -215,9 +212,16 @@ public class RobotContainer {
             drive,
             () -> -driver.getRawAxis(1),
             () -> -driver.getRawAxis(0),
-            () -> -driver.getRawAxis(3)));
+            () -> -driver.getRawAxis(4)));
 
-    // buttonLB.whileTrue(DriveCommands.moveMotorTestCom(motor));
+    // Opperator buttons
+
+    oppButtonA.onTrue(new moveElevator(ELEVATOR, 0)); // resting
+    oppButtonB.onTrue(new moveElevator(ELEVATOR, 29)); // L2
+    oppButtonX.onTrue(new moveElevator(ELEVATOR, 90)); // L3
+    oppButtonY.onTrue(new moveElevator(ELEVATOR, 210)); // L4
+    oppButtonRB.whileTrue(new minipOut(MINIP));
+    oppButtonLB.whileTrue(new minipIntake(MINIP));
   }
 
   /**

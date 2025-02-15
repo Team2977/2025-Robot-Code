@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.RobotBase;
  * (log replay from a file).
  */
 public final class Constants {
+  public static double elevatorGoal = 0;
   public static final double loopPeriodSecs = 0.02;
   public static int invert = 1;
 
