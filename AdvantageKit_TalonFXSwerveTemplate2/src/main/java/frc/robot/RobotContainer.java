@@ -15,10 +15,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.autoAimCom;
 import frc.robot.commands.minipIntake;
 import frc.robot.commands.minipOut;
 import frc.robot.commands.moveElevator;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.SuperStructure.climber;
 import frc.robot.subsystems.SuperStructure.elevator;
 import frc.robot.subsystems.SuperStructure.minip;
@@ -40,7 +42,7 @@ import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
  */
 public class RobotContainer {
   // Subsystems
-  private final Drive drive;
+  public static Drive drive;
 
   @SuppressWarnings("unused")
   private final Vision vision;
@@ -48,6 +50,7 @@ public class RobotContainer {
   private final elevator ELEVATOR = new elevator();
   private final minip MINIP = new minip();
   public final climber CLIMBER = new climber();
+  private final autoAim AUTOAIM = new autoAim();
 
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
@@ -214,12 +217,14 @@ public class RobotContainer {
             () -> -driver.getRawAxis(0),
             () -> -driver.getRawAxis(4)));
 
+    rightPaddle.whileTrue(new autoAimCom(AUTOAIM, drive));
+
     // Opperator buttons
 
-    oppButtonA.onTrue(new moveElevator(ELEVATOR, 0)); // resting
-    oppButtonB.onTrue(new moveElevator(ELEVATOR, 29)); // L2
-    oppButtonX.onTrue(new moveElevator(ELEVATOR, 90)); // L3
-    oppButtonY.onTrue(new moveElevator(ELEVATOR, 210)); // L4
+    oppButtonA.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L1)); // resting
+    oppButtonB.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L2)); // L2
+    oppButtonX.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L3)); // L3
+    oppButtonY.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L4)); // L4
     oppButtonRB.whileTrue(new minipOut(MINIP));
     oppButtonLB.whileTrue(new minipIntake(MINIP));
   }

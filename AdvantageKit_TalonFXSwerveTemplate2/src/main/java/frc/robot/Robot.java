@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.SuperStructure.climber;
 import java.util.Optional;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -177,8 +178,7 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putBoolean("is red team", ali);
     SmartDashboard.putBoolean("has team", alliance.isPresent());
 
-    robotContainer.CLIMBER.climberMotor.set(
-        MathUtil.applyDeadband(robotContainer.opperator.getRawAxis(1), 0.1));
+    climber.climberMotor.set(MathUtil.applyDeadband(RobotContainer.opperator.getRawAxis(1), 0.1));
   }
 
   /** This function is called once when test mode is enabled. */

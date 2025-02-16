@@ -21,6 +21,21 @@ import edu.wpi.first.wpilibj.RobotBase;
  * (log replay from a file).
  */
 public final class Constants {
+
+  public static class autodrivingStuff {
+    public static boolean autoDrive = false;
+    public static double xVal = 0;
+    public static double yVal = 0;
+    public static double omegaVal = 0;
+  }
+
+  public static class reefLevels {
+    public static final double L1 = 0;
+    public static final double L2 = 29;
+    public static final double L3 = 90;
+    public static final double L4 = 215;
+  }
+
   public static double elevatorGoal = 0;
   public static final double loopPeriodSecs = 0.02;
   public static int invert = 1;
