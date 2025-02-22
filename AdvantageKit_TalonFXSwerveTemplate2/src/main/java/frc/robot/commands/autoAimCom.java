@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.SuperStructure.autoAim;
-import frc.robot.subsystems.SuperStructure.elevator;
 import frc.robot.subsystems.drive.Drive;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
@@ -61,7 +60,9 @@ public class autoAimCom extends Command {
   public void initialize() {
     xController.reset(drive.getPose().getX());
     yController.reset(drive.getPose().getY());
-    OmegaController.reset(drive.getPose().getRotation().getDegrees());
+    OmegaController.reset(drive.getPose().getRotation().getRadians());
+    OmegaController.enableContinuousInput(0, 2 * Math.PI);
+
     Constants.autodrivingStuff.autoDrive = true;
     Constants.autodrivingStuff.xVal = 0;
     Constants.autodrivingStuff.yVal = 0;
@@ -72,12 +73,14 @@ public class autoAimCom extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double currentElevatorPose = elevator.leader.getPosition().getValueAsDouble();
+    // double currentElevatorPose = elevator.leader.getPosition().getValueAsDouble();
     Pose2d goal = autoAim.closestPose2d;
 
-    xController.calculate(drive.getPose().getX(), goal.getX());
-    yController.calculate(drive.getPose().getY(), goal.getY());
-    OmegaController.calculate(drive.getRotation().getDegrees(), goal.getRotation().getDegrees());
+    Constants.autodrivingStuff.xVal = xController.calculate(drive.getPose().getX(), goal.getX());
+    Constants.autodrivingStuff.yVal = yController.calculate(drive.getPose().getY(), goal.getY());
+    Constants.autodrivingStuff.omegaVal =
+        OmegaController.calculate(
+            drive.getRotation().getRadians(), goal.getRotation().getRadians());
   }
 
   // Called once the command ends or is interrupted.

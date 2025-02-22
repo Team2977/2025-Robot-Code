@@ -27,6 +27,13 @@ public final class Constants {
     public static double xVal = 0;
     public static double yVal = 0;
     public static double omegaVal = 0;
+
+    public static int tag1 = 6;
+    public static int tag2 = 7;
+    public static int tag3 = 8;
+    public static int tag4 = 9;
+    public static int tag5 = 10;
+    public static int tag6 = 11;
   }
 
   public static class reefLevels {

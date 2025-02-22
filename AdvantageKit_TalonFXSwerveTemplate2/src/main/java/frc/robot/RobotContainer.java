@@ -6,7 +6,6 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
 import com.pathplanner.lib.auto.AutoBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -15,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.autoAimCom;
 import frc.robot.commands.minipIntake;
 import frc.robot.commands.minipOut;
 import frc.robot.commands.moveElevator;
@@ -32,6 +30,7 @@ import frc.robot.subsystems.drive.ModuleIOSim;
 import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
+import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -58,9 +57,9 @@ public class RobotContainer {
 
   private final JoystickButton buttonA = new JoystickButton(driver, 1);
   private final JoystickButton buttonB = new JoystickButton(driver, 2);
-  private final JoystickButton rightPaddle = new JoystickButton(driver, 3);
-  private final JoystickButton buttonX = new JoystickButton(driver, 4);
-  private final JoystickButton buttonY = new JoystickButton(driver, 5);
+  // private final JoystickButton rightPaddle = new JoystickButton(driver, 3);
+  private final JoystickButton buttonX = new JoystickButton(driver, 3);
+  private final JoystickButton buttonY = new JoystickButton(driver, 4);
   private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
   private final JoystickButton buttonLB = new JoystickButton(driver, 7);
   private final JoystickButton buttonRB = new JoystickButton(driver, 8);
@@ -117,8 +116,7 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
-                new VisionIOPhotonVision(
-                    camera0Name, robotToCamera0)); // Using a default Transform3d
+                new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose));
         // drive::addVisionMeasurement,
         // new VisionIOPhotonVisionSim(
         //  camera0Name, robotToCamera0, drive::getPose)); // Default Vision for SIM
@@ -179,20 +177,18 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
     // Default command, normal field-relative drive
+
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> driver.getRawAxis(1) / 2,
-            () -> driver.getRawAxis(0) / 2,
-            () -> -driver.getRawAxis(4) / 2));
+            () -> driver.getRawAxis(1) * Constants.invert, // TODO check this
+            () -> driver.getRawAxis(0) * Constants.invert,
+            () -> -driver.getRawAxis(3)));
 
     // Lock to 0° when A button is held
     buttonA.whileTrue(
         DriveCommands.joystickDriveAtAngle(
-            drive,
-            () -> driver.getRawAxis(1) * Constants.invert,
-            () -> driver.getRawAxis(0) * Constants.invert,
-            () -> new Rotation2d()));
+            drive, () -> driver.getRawAxis(1), () -> driver.getRawAxis(0), () -> new Rotation2d()));
 
     // Switch to X pattern when X button is pressed
     // controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -204,7 +200,7 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    buttonY.whileTrue(
+    /*  buttonY.whileTrue(
         DriveCommands.alignToPoseAndAngleCom(
             drive,
             () -> new Translation2d(11.45, 7.55),
@@ -215,9 +211,11 @@ public class RobotContainer {
             drive,
             () -> -driver.getRawAxis(1),
             () -> -driver.getRawAxis(0),
-            () -> -driver.getRawAxis(4)));
+            () -> -driver.getRawAxis(4)));*/
 
-    rightPaddle.whileTrue(new autoAimCom(AUTOAIM, drive));
+    buttonX.whileTrue(
+        DriveCommands.driveToNearestReefPoint(drive, AUTOAIM, () -> driver.getRawButton(5)));
+    // rightPaddle.whileTrue(new autoAimCom(AUTOAIM, drive));
 
     // Opperator buttons
 
