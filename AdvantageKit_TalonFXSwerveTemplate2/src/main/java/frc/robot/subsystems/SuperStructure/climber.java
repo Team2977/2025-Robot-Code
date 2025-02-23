@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.SuperStructure;
 
+import static frc.robot.util.PhoenixUtil.tryUntilOk;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -24,7 +26,7 @@ public class climber extends SubsystemBase {
     config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = -2.7;
 
-    climberMotor.getConfigurator().apply(config);
+    tryUntilOk(5, () -> climberMotor.getConfigurator().apply(config));
   }
 
   @Override
