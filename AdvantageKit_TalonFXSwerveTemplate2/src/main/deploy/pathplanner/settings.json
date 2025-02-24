@@ -2,21 +2,8 @@
   "robotWidth": 0.9,
   "robotLength": 0.9,
   "holonomicMode": true,
-  "pathFolders": [
-    "16 point auto P1 blue",
-    "16 point auto P3 red",
-    "16 point auto P3 blue",
-    "Blue score",
-    "P1; P2; P3 forward blue",
-    "P1; P2; P3 forward red"
-  ],
-  "autoFolders": [
-    "16 point autos",
-    "Move red",
-    "Score Blue",
-    "Score red",
-    "Drive blue"
-  ],
+  "pathFolders": [],
+  "autoFolders": [],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,
   "defaultMaxAngVel": 540.0,
@@ -41,5 +28,7 @@
   "brModuleY": -0.273,
   "bumperOffsetX": 0.0,
   "bumperOffsetY": 0.0,
-  "robotFeatures": []
+  "robotFeatures": [
+    "{\"name\":\"Line\",\"type\":\"line\",\"data\":{\"start\":{\"x\":0.0,\"y\":0.0},\"end\":{\"x\":0.2,\"y\":0.0},\"strokeWidth\":0.02}}"
+  ]
 }
