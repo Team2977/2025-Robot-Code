@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems.SuperStructure;
 
-import static frc.robot.util.PhoenixUtil.tryUntilOk;
-
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
@@ -68,8 +66,8 @@ public class elevator extends SubsystemBase {
     config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
 
-    tryUntilOk(5, () -> leader.getConfigurator().apply(config));
-    tryUntilOk(5, () -> follower.getConfigurator().apply(config));
+    leader.getConfigurator().apply(config);
+    follower.getConfigurator().apply(config);
   }
 
   @Override

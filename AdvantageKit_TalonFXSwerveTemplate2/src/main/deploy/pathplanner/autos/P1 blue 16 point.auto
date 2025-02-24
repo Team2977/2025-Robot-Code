@@ -1,0 +1,97 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "P1 step 1 blue"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "raise elevator to L2"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "manipOut"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "lower elevator to L0"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "P1 step 2 blue"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "P1 step 3 blue"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "raise elevator to L2"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "manipOut"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "lower elevator to L0"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "16 point autos",
+  "choreoAuto": false
+}

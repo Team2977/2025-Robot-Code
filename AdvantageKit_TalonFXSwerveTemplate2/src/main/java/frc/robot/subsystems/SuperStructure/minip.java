@@ -27,7 +27,7 @@ public class minip extends SubsystemBase {
     configUlator.smartCurrentLimit(30);
 
     configSlave.idleMode(IdleMode.kBrake);
-    configSlave.inverted(false);
+    configSlave.inverted(true);
     // TODO check the breaker on the motors
     configSlave.smartCurrentLimit(30);
 
