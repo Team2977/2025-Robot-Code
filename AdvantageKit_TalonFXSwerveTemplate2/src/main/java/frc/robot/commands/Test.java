@@ -5,17 +5,12 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.other.ClimberSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class ClimbShallow extends Command {
-
-  private final ClimberSubsystem _ClimberSubsystem;
-
-  /** Creates a new ClimbShallow. */
-  public ClimbShallow(ClimberSubsystem climberSubsystem) {
+public class Test extends Command {
+  /** Creates a new Test. */
+  public Test() {
     // Use addRequirements() here to declare subsystem dependencies.
-    _ClimberSubsystem = climberSubsystem;
   }
 
   // Called when the command is initially scheduled.
@@ -24,10 +19,7 @@ public class ClimbShallow extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {
-
-    _ClimberSubsystem.setClimbSpeed(.5);
-  }
+  public void execute() {}
 
   // Called once the command ends or is interrupted.
   @Override
