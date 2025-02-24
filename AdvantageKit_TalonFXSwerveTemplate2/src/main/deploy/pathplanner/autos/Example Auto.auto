@@ -7,13 +7,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Dive forard P3 blue"
+            "pathName": "Example Path"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Drive blue",
+  "folder": null,
   "choreoAuto": false
 }

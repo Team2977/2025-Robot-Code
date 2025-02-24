@@ -13,6 +13,8 @@
 
 package frc.robot.commands;
 
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -30,12 +32,15 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.subsystems.other.Motor;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.photonvision.PhotonUtils;
@@ -83,6 +88,7 @@ public class DriveCommands {
       DoubleSupplier omegaSupplier) {
     return Commands.run(
         () -> {
+
           // Get linear velocity
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
@@ -101,7 +107,7 @@ public class DriveCommands {
                   omega * drive.getMaxAngularSpeedRadPerSec());
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
-                  && DriverStation.getAlliance().get() == Alliance.Red;
+                  && DriverStation.getAlliance().get() == Alliance.Blue;
           drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   speeds,
@@ -111,6 +117,92 @@ public class DriveCommands {
         },
         drive);
   }
+  // ###################################### DRIVE TO REEF POINTS
+  // ######################################################
+
+  public static Command driveToNearestReefPoint(
+      Drive drive, autoAim autoaim, BooleanSupplier toRightSide) {
+    // TODO MUST MAKE TORIGHTSIDE WORK. ALSO GET THE PROPER POINTS TO DRIVE TO
+    final ProfiledPIDController xController =
+        new ProfiledPIDController(
+            1,
+            0,
+            0,
+            new TrapezoidProfile.Constraints(
+                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)));
+
+    final ProfiledPIDController yController =
+        new ProfiledPIDController(
+            1,
+            0,
+            0,
+            new TrapezoidProfile.Constraints(
+                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)));
+
+    final ProfiledPIDController OmegaController =
+        new ProfiledPIDController(
+            1,
+            0,
+            0,
+            new TrapezoidProfile.Constraints(
+                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
+                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)));
+
+    OmegaController.enableContinuousInput(0, 2 * Math.PI);
+
+    // command
+    return Commands.run(
+            () -> {
+              Pose2d goal =
+                  autoAim.closestPose2d.transformBy(new Transform2d(1, 0, new Rotation2d()));
+              double rotaGoal = goal.getRotation().getRadians() + Math.PI;
+
+              int invert = 1;
+              if (DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red) {
+                invert = -1;
+              }
+
+              double XVel = xController.calculate(drive.getPose().getX(), goal.getX()) * invert;
+              double YVel = yController.calculate(drive.getPose().getY(), goal.getY()) * invert;
+              double OmegaVal =
+                  OmegaController.calculate(drive.getPose().getRotation().getRadians(), rotaGoal);
+
+              // normal driving
+
+              // Get linear velocity
+              Translation2d linearVelocity = getLinearVelocityFromJoysticks(XVel, YVel);
+
+              // Apply rotation deadband
+              double omega = MathUtil.applyDeadband(OmegaVal, DEADBAND);
+
+              // Square rotation value for more precise control
+              omega = Math.copySign(omega * omega, omega);
+
+              // Convert to field relative speeds & send command
+              ChassisSpeeds speeds =
+                  new ChassisSpeeds(
+                      linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                      linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                      omega * drive.getMaxAngularSpeedRadPerSec());
+              boolean isFlipped =
+                  DriverStation.getAlliance().isPresent()
+                      && DriverStation.getAlliance().get() == Alliance.Red;
+              drive.runVelocity(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                      speeds,
+                      isFlipped
+                          ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                          : drive.getRotation()));
+            },
+            drive)
+        .beforeStarting(() -> xController.reset(drive.getPose().getX()))
+        .beforeStarting(() -> yController.reset(drive.getPose().getY()))
+        .beforeStarting(() -> OmegaController.reset(drive.getPose().getRotation().getRadians()));
+  }
+
   // #################################### JOYSTICK DRIVE AT ANGLE
   // ###################################################################################
   /**
@@ -153,7 +245,7 @@ public class DriveCommands {
                       omega);
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
-                      && DriverStation.getAlliance().get() == Alliance.Red;
+                      && DriverStation.getAlliance().get() == Alliance.Blue;
               drive.runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       speeds,
@@ -229,7 +321,7 @@ public class DriveCommands {
                       omega);
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
-                      && DriverStation.getAlliance().get() == Alliance.Red;
+                      && DriverStation.getAlliance().get() == Alliance.Blue;
               drive.runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       speeds,
@@ -379,7 +471,7 @@ public class DriveCommands {
                         omega);
                 boolean isFlipped =
                     DriverStation.getAlliance().isPresent()
-                        && DriverStation.getAlliance().get() == Alliance.Red;
+                        && DriverStation.getAlliance().get() == Alliance.Blue;
                 drive.runVelocity(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                         speeds,
@@ -408,7 +500,7 @@ public class DriveCommands {
                         omega * drive.getMaxAngularSpeedRadPerSec());
                 boolean isFlipped =
                     DriverStation.getAlliance().isPresent()
-                        && DriverStation.getAlliance().get() == Alliance.Red;
+                        && DriverStation.getAlliance().get() == Alliance.Blue;
                 drive.runVelocity(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                         speeds,
