@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.SuperStructure.climber;
 import java.util.Optional;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -170,33 +169,16 @@ public class Robot extends LoggedRobot {
       if (alliance.get() == Alliance.Red) {
         ali = true;
         Constants.invert = 1;
-
-        Constants.autodrivingStuff.tag1 = 6;
-        Constants.autodrivingStuff.tag2 = 7;
-        Constants.autodrivingStuff.tag3 = 8;
-        Constants.autodrivingStuff.tag4 = 9;
-        Constants.autodrivingStuff.tag5 = 10;
-        Constants.autodrivingStuff.tag6 = 11;
-      } else { // BLUE
+      } else {
         ali = false;
         Constants.invert = -1;
-
-        Constants.autodrivingStuff.tag1 = 19;
-        Constants.autodrivingStuff.tag2 = 18;
-        Constants.autodrivingStuff.tag3 = 17;
-        Constants.autodrivingStuff.tag4 = 22;
-        Constants.autodrivingStuff.tag5 = 21;
-        Constants.autodrivingStuff.tag6 = 20;
       }
     }
     SmartDashboard.putBoolean("is red team", ali);
     SmartDashboard.putBoolean("has team", alliance.isPresent());
 
-    climber.climberMotor.set(MathUtil.applyDeadband(RobotContainer.opperator.getRawAxis(1), 0.1));
-
-    SmartDashboard.putNumber("X pose", RobotContainer.drive.getPose().getX());
-    SmartDashboard.putNumber("Y pose", robotContainer.drive.getPose().getY());
-    SmartDashboard.putNumber("Rota", robotContainer.drive.getPose().getRotation().getDegrees());
+    robotContainer.CLIMBER.climberMotor.set(
+        MathUtil.applyDeadband(-robotContainer.opperator.getRawAxis(1), 0.1));
   }
 
   /** This function is called once when test mode is enabled. */

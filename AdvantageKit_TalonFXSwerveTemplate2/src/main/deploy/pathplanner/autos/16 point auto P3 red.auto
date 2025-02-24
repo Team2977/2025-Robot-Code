@@ -1,0 +1,98 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "P3 step 1 red"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "raise elevator to L4"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "manipOut"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "lower elevator to L0"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "P3 step 2 red"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 2.0
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "P3 step 3 red"
+                }
+              },
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 0.5
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "raise elevator to L4"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "manipOut"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "manipIntake"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "16 point autos",
+  "choreoAuto": false
+}
