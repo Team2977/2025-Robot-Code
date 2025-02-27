@@ -8,6 +8,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -23,6 +24,7 @@ public class autoAim extends SubsystemBase {
   // private final Drive drive = RobotContainer.drive;
   private AprilTagFieldLayout layout;
   public static Pose2d closestPose2d;
+  public static Pose2d rightSidePose2d;
 
   enum reefLevel {
     L1,
@@ -156,28 +158,29 @@ public class autoAim extends SubsystemBase {
         break;
     }*/
 
+    double xOffset = 0.47;
+    double yLeftOffset = 0.3;
+    double yRightOffset = 0.6;
+    Pose2d wantedPose2d;
+
     switch (minIndex) {
       case 0:
         closestPose2d =
             new Pose2d(
                 new Translation2d(
-                    FieldConstants.Reef.centerFaces[0].getX(),
-                    FieldConstants.Reef.centerFaces[0].getY()),
+                    FieldConstants.Reef.centerFaces[0].getX() - 0.47,
+                    FieldConstants.Reef.centerFaces[0].getY() + 0.3),
                 FieldConstants.Reef.centerFaces[0].getRotation());
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+        rightSidePose2d =
+            new Pose2d(
+                new Translation2d(closestPose2d.getX(), closestPose2d.getY() - 0.3),
+                closestPose2d.getRotation());
         break;
       case 1:
         closestPose2d =
             new Pose2d(
-                new Translation2d(
-                    FieldConstants.Reef.centerFaces[1].getX(),
-                    FieldConstants.Reef.centerFaces[1].getY()),
-                FieldConstants.Reef.centerFaces[1].getRotation());
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+                new Translation2d(4.13, 5.29), FieldConstants.Reef.centerFaces[1].getRotation());
+        rightSidePose2d = new Pose2d(new Translation2d(3.81, 5.11), closestPose2d.getRotation());
         break;
       case 2:
         closestPose2d =
@@ -186,31 +189,25 @@ public class autoAim extends SubsystemBase {
                     FieldConstants.Reef.centerFaces[2].getX(),
                     FieldConstants.Reef.centerFaces[2].getY()),
                 FieldConstants.Reef.centerFaces[2].getRotation());
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+        rightSidePose2d = closestPose2d;
         break;
       case 3:
         closestPose2d =
             new Pose2d(
                 new Translation2d(
-                    FieldConstants.Reef.centerFaces[3].getX(),
-                    FieldConstants.Reef.centerFaces[3].getY()),
+                    FieldConstants.Reef.centerFaces[3].getX() + 0.47,
+                    FieldConstants.Reef.centerFaces[3].getY() - 0.3),
                 FieldConstants.Reef.centerFaces[3].getRotation());
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+        rightSidePose2d =
+            new Pose2d(
+                new Translation2d(closestPose2d.getX(), closestPose2d.getY() + 0.3),
+                closestPose2d.getRotation());
         break;
       case 4:
         closestPose2d =
             new Pose2d(
-                new Translation2d(
-                    FieldConstants.Reef.centerFaces[4].getX(),
-                    FieldConstants.Reef.centerFaces[4].getY()),
-                FieldConstants.Reef.centerFaces[4].getRotation());
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+                new Translation2d(4.78, 2.76), FieldConstants.Reef.centerFaces[4].getRotation());
+        rightSidePose2d = new Pose2d(new Translation2d(5.14, 2.91), closestPose2d.getRotation());
         break;
       case 5:
         closestPose2d =
@@ -219,16 +216,18 @@ public class autoAim extends SubsystemBase {
                     FieldConstants.Reef.centerFaces[5].getX(),
                     FieldConstants.Reef.centerFaces[5].getY()),
                 FieldConstants.Reef.centerFaces[5].getRotation());
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+        rightSidePose2d = closestPose2d;
         break;
 
       default:
-        closestPose2d = null;
-        // SmartDashboard.putData("wanted pose", (Sendable) closestPose2d);
+        closestPose2d = new Pose2d();
+        rightSidePose2d = new Pose2d();
         break;
     }
+
+    SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
+    SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
+    SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees() - 90);
   }
 
   /**
@@ -239,5 +238,17 @@ public class autoAim extends SubsystemBase {
   public static double[] createElevatorCmd(reefSide side, reefLevel level) {
 
     return null;
+  }
+
+  public static Pose2d alignToCoordinatePlane(double x, double y) {
+    // Rotation matrix for -60 degrees
+    double cosTheta = Math.cos(60); // cos(-60°) = cos(60°) = 0.5
+    double sinTheta = Math.sin(60); // sin(-60°) = -sin(60°) = -0.866
+
+    // Apply 2D rotation transformation
+    double alignedX = (x * cosTheta) - (y * sinTheta);
+    double alignedY = (x * sinTheta) + (y * cosTheta);
+
+    return new Pose2d(new Translation2d(alignedX, alignedY), new Rotation2d());
   }
 }

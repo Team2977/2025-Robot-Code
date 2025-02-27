@@ -19,7 +19,6 @@ import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class elevator extends SubsystemBase {
@@ -28,7 +27,6 @@ public class elevator extends SubsystemBase {
 
   private static final TalonFX follower = new TalonFX(7, "rio");
 
-  @AutoLogOutput
   private static final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
   // motion magic does math in the background, runs on motor
 

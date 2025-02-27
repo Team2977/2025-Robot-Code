@@ -4,6 +4,8 @@ import static frc.robot.subsystems.vision.VisionConstants.camera0Name;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -14,9 +16,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.autoScoreL4;
 import frc.robot.commands.minipIntake;
 import frc.robot.commands.minipOut;
 import frc.robot.commands.moveElevator;
+import frc.robot.commands.toggleInverted;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.SuperStructure.climber;
@@ -60,14 +64,14 @@ public class RobotContainer {
   // private final JoystickButton rightPaddle = new JoystickButton(driver, 3);
   private final JoystickButton buttonX = new JoystickButton(driver, 3);
   private final JoystickButton buttonY = new JoystickButton(driver, 4);
-  private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
-  private final JoystickButton buttonLB = new JoystickButton(driver, 7);
-  private final JoystickButton buttonRB = new JoystickButton(driver, 8);
-  private final JoystickButton buttonLT = new JoystickButton(driver, 9);
-  private final JoystickButton buttonRT = new JoystickButton(driver, 10);
-  private final JoystickButton buttonStart = new JoystickButton(driver, 11);
-  private final JoystickButton buttonBack = new JoystickButton(driver, 12);
-  private final JoystickButton homeButton = new JoystickButton(driver, 13);
+  // private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
+  private final JoystickButton buttonLB = new JoystickButton(driver, 5);
+  private final JoystickButton buttonRB = new JoystickButton(driver, 6);
+  private final JoystickButton buttonLT = new JoystickButton(driver, 7);
+  private final JoystickButton buttonRT = new JoystickButton(driver, 8);
+  private final JoystickButton buttonStart = new JoystickButton(driver, 9);
+  private final JoystickButton buttonBack = new JoystickButton(driver, 10);
+  private final JoystickButton homeButton = new JoystickButton(driver, 11);
 
   public static final Joystick opperator = new Joystick(1);
 
@@ -146,6 +150,8 @@ public class RobotContainer {
         break;
     }
 
+    NamedCommands.registerCommand("autoScoreL4", new autoScoreL4(ELEVATOR, MINIP));
+
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -165,6 +171,9 @@ public class RobotContainer {
     autoChooser.addOption(
         "Drive SysId (Dynamic Reverse)", drive.sysIdDynamic(SysIdRoutine.Direction.kReverse));
 
+    autoChooser.addOption("drive forward Auto", new PathPlannerAuto("drive forward Auto"));
+    autoChooser.addOption("L4 auto", new PathPlannerAuto("L4 Auto"));
+
     // Configure the button bindings
     configureButtonBindings();
   }
@@ -181,14 +190,14 @@ public class RobotContainer {
     drive.setDefaultCommand(
         DriveCommands.joystickDrive(
             drive,
-            () -> driver.getRawAxis(1) * Constants.invert, // TODO check this
-            () -> driver.getRawAxis(0) * Constants.invert,
-            () -> -driver.getRawAxis(3)));
+            () -> -driver.getRawAxis(1) * Constants.teleopInvert,
+            () -> -driver.getRawAxis(0) * Constants.teleopInvert,
+            () -> -driver.getRawAxis(4)));
 
     // Lock to 0° when A button is held
-    buttonA.whileTrue(
-        DriveCommands.joystickDriveAtAngle(
-            drive, () -> driver.getRawAxis(1), () -> driver.getRawAxis(0), () -> new Rotation2d()));
+    /*buttonA.whileTrue(
+    DriveCommands.joystickDriveAtAngle(
+        drive, () -> driver.getRawAxis(1), () -> driver.getRawAxis(0), () -> new Rotation2d()));*/
 
     // Switch to X pattern when X button is pressed
     // controller.x().onTrue(Commands.runOnce(drive::stopWithX, drive));
@@ -200,22 +209,21 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    /*  buttonY.whileTrue(
-        DriveCommands.alignToPoseAndAngleCom(
-            drive,
-            () -> new Translation2d(11.45, 7.55),
-            () -> new Rotation2d(Math.toRadians(-90))));
+    /*buttonX.whileTrue(
+    DriveCommands.alignToFeederCom(
+        drive,
+        () -> -driver.getRawAxis(1),
+        () -> -driver.getRawAxis(0),
+        () -> -driver.getRawAxis(4)));*/
 
-    buttonX.whileTrue(
-        DriveCommands.alignToFeederCom(
-            drive,
-            () -> -driver.getRawAxis(1),
-            () -> -driver.getRawAxis(0),
-            () -> -driver.getRawAxis(4)));*/
+    buttonLB.whileTrue(
+        DriveCommands.driveToNearestReefPoint(drive, AUTOAIM, () -> buttonRB.getAsBoolean()));
 
-    buttonX.whileTrue(
-        DriveCommands.driveToNearestReefPoint(drive, AUTOAIM, () -> driver.getRawButton(5)));
-    // rightPaddle.whileTrue(new autoAimCom(AUTOAIM, drive));
+    buttonY.onTrue(new toggleInverted());
+
+    /*buttonY.whileTrue(
+    DriveCommands.AlighnToReef(
+        () -> -driver.getRawAxis(1), () -> -driver.getRawAxis(0), drive, AUTOAIM));*/
 
     // Opperator buttons
 

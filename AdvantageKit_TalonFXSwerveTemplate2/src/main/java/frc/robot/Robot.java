@@ -128,11 +128,24 @@ public class Robot extends LoggedRobot {
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
+  }
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    SmartDashboard.putNumber("pose X", RobotContainer.drive.getPose().getX());
+    SmartDashboard.putNumber("pose Y", RobotContainer.drive.getPose().getY());
+    SmartDashboard.putNumber(
+        "Pose Rotation", RobotContainer.drive.getPose().getRotation().getDegrees());
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
@@ -143,11 +156,26 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.schedule();
     }
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
   }
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
+  }
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -159,6 +187,13 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.cancel();
     }
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
   }
 
   /** This function is called periodically during operator control. */
@@ -169,24 +204,10 @@ public class Robot extends LoggedRobot {
     if (alliance.isPresent()) {
       if (alliance.get() == Alliance.Red) {
         ali = true;
-        Constants.invert = 1;
-
-        Constants.autodrivingStuff.tag1 = 6;
-        Constants.autodrivingStuff.tag2 = 7;
-        Constants.autodrivingStuff.tag3 = 8;
-        Constants.autodrivingStuff.tag4 = 9;
-        Constants.autodrivingStuff.tag5 = 10;
-        Constants.autodrivingStuff.tag6 = 11;
+        Constants.invert = -1;
       } else { // BLUE
         ali = false;
-        Constants.invert = -1;
-
-        Constants.autodrivingStuff.tag1 = 19;
-        Constants.autodrivingStuff.tag2 = 18;
-        Constants.autodrivingStuff.tag3 = 17;
-        Constants.autodrivingStuff.tag4 = 22;
-        Constants.autodrivingStuff.tag5 = 21;
-        Constants.autodrivingStuff.tag6 = 20;
+        Constants.invert = 1;
       }
     }
     SmartDashboard.putBoolean("is red team", ali);
@@ -197,6 +218,7 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putNumber("X pose", RobotContainer.drive.getPose().getX());
     SmartDashboard.putNumber("Y pose", robotContainer.drive.getPose().getY());
     SmartDashboard.putNumber("Rota", robotContainer.drive.getPose().getRotation().getDegrees());
+    SmartDashboard.putNumber("invert", Constants.invert);
   }
 
   /** This function is called once when test mode is enabled. */

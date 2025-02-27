@@ -22,9 +22,9 @@ public class climber extends SubsystemBase {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.Feedback.SensorToMechanismRatio = 144;
     config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 0;
+    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 3.5;
     config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-    config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = -2.7;
+    config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
 
     tryUntilOk(5, () -> climberMotor.getConfigurator().apply(config));
   }

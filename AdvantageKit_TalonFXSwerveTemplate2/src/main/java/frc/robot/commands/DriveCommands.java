@@ -17,6 +17,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -112,7 +113,7 @@ public class DriveCommands {
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   speeds,
                   isFlipped
-                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      ? drive.getRotation() /*.plus(new Rotation2d(Math.PI))*/
                       : drive.getRotation()));
         },
         drive);
@@ -125,8 +126,8 @@ public class DriveCommands {
     // TODO MUST MAKE TORIGHTSIDE WORK. ALSO GET THE PROPER POINTS TO DRIVE TO
     final ProfiledPIDController xController =
         new ProfiledPIDController(
-            1,
-            0,
+            10,
+            0.1,
             0,
             new TrapezoidProfile.Constraints(
                 TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
@@ -134,8 +135,8 @@ public class DriveCommands {
 
     final ProfiledPIDController yController =
         new ProfiledPIDController(
-            1,
-            0,
+            10,
+            0.1,
             0,
             new TrapezoidProfile.Constraints(
                 TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
@@ -147,17 +148,21 @@ public class DriveCommands {
             0,
             0,
             new TrapezoidProfile.Constraints(
-                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond),
-                TunerConstants.kSpeedAt12Volts.in(MetersPerSecond)));
+                drive.getMaxAngularSpeedRadPerSec(), Units.degreesToRadians(9000)));
 
     OmegaController.enableContinuousInput(0, 2 * Math.PI);
 
     // command
     return Commands.run(
             () -> {
-              Pose2d goal =
-                  autoAim.closestPose2d.transformBy(new Transform2d(1, 0, new Rotation2d()));
-              double rotaGoal = goal.getRotation().getRadians() + Math.PI;
+              Pose2d goal;
+              if (toRightSide.getAsBoolean()) {
+                goal = autoaim.rightSidePose2d;
+              } else {
+                goal = autoaim.closestPose2d;
+              }
+              // Pose2d goal = autoAim.closestPose2d;
+              double rotaGoal = goal.getRotation().getRadians() - Math.PI / 2;
 
               int invert = 1;
               if (DriverStation.getAlliance().isPresent()
@@ -169,8 +174,6 @@ public class DriveCommands {
               double YVel = yController.calculate(drive.getPose().getY(), goal.getY()) * invert;
               double OmegaVal =
                   OmegaController.calculate(drive.getPose().getRotation().getRadians(), rotaGoal);
-
-              // normal driving
 
               // Get linear velocity
               Translation2d linearVelocity = getLinearVelocityFromJoysticks(XVel, YVel);
@@ -201,6 +204,44 @@ public class DriveCommands {
         .beforeStarting(() -> xController.reset(drive.getPose().getX()))
         .beforeStarting(() -> yController.reset(drive.getPose().getY()))
         .beforeStarting(() -> OmegaController.reset(drive.getPose().getRotation().getRadians()));
+  }
+
+  public static Command AlighnToReef(
+      DoubleSupplier xSupplier, DoubleSupplier ySupplier, Drive drive, autoAim autoAim) {
+
+    final PIDController controller = new PIDController(100, 0, 0);
+
+    return Commands.run(
+        () -> {
+          double rotationGoal = autoAim.closestPose2d.getRotation().getRadians();
+
+          Translation2d linearVelocity =
+              getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
+
+          double OmegaVal = controller.calculate(drive.getRotation().getRadians(), rotationGoal);
+
+          // Apply rotation deadband
+
+          // Square rotation value for more precise control
+          OmegaVal = Math.copySign(OmegaVal * OmegaVal, OmegaVal);
+
+          // Convert to field relative speeds & send command
+          ChassisSpeeds speeds =
+              new ChassisSpeeds(
+                  linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
+                  linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
+                  OmegaVal * drive.getMaxAngularSpeedRadPerSec());
+          boolean isFlipped =
+              DriverStation.getAlliance().isPresent()
+                  && DriverStation.getAlliance().get() == Alliance.Red;
+          drive.runVelocity(
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  speeds,
+                  isFlipped
+                      ? drive.getRotation().plus(new Rotation2d(Math.PI))
+                      : drive.getRotation()));
+        },
+        drive);
   }
 
   // #################################### JOYSTICK DRIVE AT ANGLE

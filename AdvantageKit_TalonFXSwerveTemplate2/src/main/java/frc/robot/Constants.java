@@ -21,8 +21,10 @@ import edu.wpi.first.wpilibj.RobotBase;
  * (log replay from a file).
  */
 public final class Constants {
+  public static int teleopInvert = 1;
 
   public static class autodrivingStuff {
+
     public static boolean autoDrive = false;
     public static double xVal = 0;
     public static double yVal = 0;
@@ -38,9 +40,9 @@ public final class Constants {
 
   public static class reefLevels {
     public static final double L1 = 0;
-    public static final double L2 = 29;
-    public static final double L3 = 90;
-    public static final double L4 = 215;
+    public static final double L2 = 47;
+    public static final double L3 = 108;
+    public static final double L4 = 221;
   }
 
   public static double elevatorGoal = 0;

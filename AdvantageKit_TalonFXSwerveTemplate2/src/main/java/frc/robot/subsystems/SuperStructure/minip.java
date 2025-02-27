@@ -11,12 +11,14 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 public class minip extends SubsystemBase {
   private static final SparkMax ulator = new SparkMax(3, MotorType.kBrushless);
   private static final SparkMax ulatorSlave = new SparkMax(4, MotorType.kBrushless);
   private final SparkMaxConfig configUlator = new SparkMaxConfig();
   private final SparkMaxConfig configSlave = new SparkMaxConfig();
+  public static boolean scoring = false;
 
   /** Creates a new minip. */
   public minip() {
@@ -27,7 +29,7 @@ public class minip extends SubsystemBase {
     configUlator.smartCurrentLimit(30);
 
     configSlave.idleMode(IdleMode.kBrake);
-    configSlave.inverted(false);
+    configSlave.inverted(true);
     // TODO check the breaker on the motors
     configSlave.smartCurrentLimit(30);
 
@@ -37,7 +39,9 @@ public class minip extends SubsystemBase {
   }
 
   @Override
-  public void periodic() {}
+  public void periodic() {
+    Logger.recordOutput("scoring", scoring);
+  }
 
   public void minipIntake() {
     ulator.set(0.4);
