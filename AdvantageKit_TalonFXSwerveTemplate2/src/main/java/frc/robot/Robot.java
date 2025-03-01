@@ -16,7 +16,6 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Threads;
@@ -24,7 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.SuperStructure.climber;
+// import frc.robot.subsystems.SuperStructure.climber;
 import java.util.Optional;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -213,7 +212,8 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putBoolean("is red team", ali);
     SmartDashboard.putBoolean("has team", alliance.isPresent());
 
-    climber.climberMotor.set(MathUtil.applyDeadband(RobotContainer.opperator.getRawAxis(1), 0.1));
+    // climber.climberMotor.set(MathUtil.applyDeadband(RobotContainer.opperator.getRawAxis(1),
+    // 0.1));
 
     SmartDashboard.putNumber("X pose", RobotContainer.drive.getPose().getX());
     SmartDashboard.putNumber("Y pose", robotContainer.drive.getPose().getY());

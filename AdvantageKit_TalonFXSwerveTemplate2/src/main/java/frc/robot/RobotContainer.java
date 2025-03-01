@@ -4,7 +4,6 @@ import static frc.robot.subsystems.vision.VisionConstants.camera0Name;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -16,14 +15,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.autoScoreL4;
 import frc.robot.commands.minipIntake;
 import frc.robot.commands.minipOut;
 import frc.robot.commands.moveElevator;
 import frc.robot.commands.toggleInverted;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.SuperStructure.autoAim;
-import frc.robot.subsystems.SuperStructure.climber;
+// import frc.robot.subsystems.SuperStructure.climber;
 import frc.robot.subsystems.SuperStructure.elevator;
 import frc.robot.subsystems.SuperStructure.minip;
 import frc.robot.subsystems.drive.Drive;
@@ -52,7 +50,7 @@ public class RobotContainer {
 
   private final elevator ELEVATOR = new elevator();
   private final minip MINIP = new minip();
-  public final climber CLIMBER = new climber();
+  // public final climber CLIMBER = new climber();
   private final autoAim AUTOAIM = new autoAim();
 
   // Controller
@@ -150,7 +148,7 @@ public class RobotContainer {
         break;
     }
 
-    NamedCommands.registerCommand("autoScoreL4", new autoScoreL4(ELEVATOR, MINIP));
+    // NamedCommands.registerCommand("autoScoreL4", new autoScoreL4(ELEVATOR, MINIP));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
