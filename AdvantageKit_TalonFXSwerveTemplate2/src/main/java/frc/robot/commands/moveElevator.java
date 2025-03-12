@@ -28,7 +28,7 @@ public class moveElevator extends Command {
 
   @Override
   public void initialize() {
-    controller.reset(ELEVATOR.leader.getPosition().getValueAsDouble());
+    controller.reset(elevator.leader.getPosition().getValueAsDouble());
     finishCommand = false;
   }
 
@@ -36,7 +36,7 @@ public class moveElevator extends Command {
   public void execute() {
 
     Constants.elevatorGoal =
-        controller.calculate(ELEVATOR.leader.getPosition().getValueAsDouble(), Goal);
+        controller.calculate(elevator.leader.getPosition().getValueAsDouble(), Goal);
     SmartDashboard.putBoolean("workingiskhdjlj", true);
 
     SmartDashboard.putNumber("ele goals", controller.getGoal().position);

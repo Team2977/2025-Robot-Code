@@ -19,7 +19,7 @@ public class minipOut extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    MINIP.scoring = true;
+    minip.scoring = true;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -32,7 +32,7 @@ public class minipOut extends Command {
   @Override
   public void end(boolean interrupted) {
     MINIP.stopMotors();
-    MINIP.scoring = false;
+    minip.scoring = false;
   }
 
   // Returns true when the command should end.

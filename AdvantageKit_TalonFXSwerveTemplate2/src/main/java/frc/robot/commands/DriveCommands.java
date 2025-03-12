@@ -161,7 +161,7 @@ public class DriveCommands {
   public static Command alightToRightSide(Drive drive, autoAim autoAim) {
     Pose2d curPose = drive.getPose();
     Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.rightSidePose2d;
-    Rotation2d pathRotation2d = frc.robot.subsystems.SuperStructure.autoAim.pathRotation2d;
+    // Rotation2d pathRotation2d = frc.robot.subsystems.SuperStructure.autoAim.pathRotation2d;
 
     List<Waypoint> waypoints =
         PathPlannerPath.waypointsFromPoses(
