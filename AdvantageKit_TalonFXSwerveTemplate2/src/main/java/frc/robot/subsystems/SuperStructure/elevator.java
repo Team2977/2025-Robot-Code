@@ -8,7 +8,6 @@ import static frc.robot.util.PhoenixUtil.tryUntilOk;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -27,8 +26,8 @@ public class elevator extends SubsystemBase {
 
   private static final TalonFX follower = new TalonFX(7, "rio");
 
-  private static final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
-  // motion magic does math in the background, runs on motor
+  // motion magic does math in the background, runs on motor. Not used. we use PID loops instead.
+  // private static final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
 
   private Follower slave = new Follower(leader.getDeviceID(), true);
 
@@ -74,7 +73,6 @@ public class elevator extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
 
-    // leader.setControl(motionMagicRequest.withPosition(Constants.elevatorGoal));
     leader.set(Constants.elevatorGoal);
     follower.setControl(slave);
 
@@ -84,13 +82,4 @@ public class elevator extends SubsystemBase {
     SmartDashboard.putNumber("LeaderPosition Data", leader.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Elevator Goal", Constants.elevatorGoal);
   }
-
-  /*public void runToPosition(double Goal) {
-
-    leader.setControl(motionMagicRequest.withPosition(Goal));
-     follower.setControl(slave);
-
-     SmartDashboard.putNumber("Goal", Goal);
-  }
-  */
 }

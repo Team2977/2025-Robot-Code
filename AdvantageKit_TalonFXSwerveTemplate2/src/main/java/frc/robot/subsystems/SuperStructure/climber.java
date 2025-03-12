@@ -1,7 +1,7 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-/*
+
 package frc.robot.subsystems.SuperStructure;
 
 import static frc.robot.util.PhoenixUtil.tryUntilOk;
@@ -17,24 +17,21 @@ public class climber extends SubsystemBase {
   public static final TalonFX climberMotor = new TalonFX(1, "driveBase");
   private static final TalonFXConfiguration config = new TalonFXConfiguration();
   /** Creates a new climber. */
+  public climber() {
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.Feedback.SensorToMechanismRatio = 144;
+    config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
+    config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 3.5;
+    config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
+    config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
 
-  /*
-    public climber() {
-      config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-      config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-      config.Feedback.SensorToMechanismRatio = 144;
-      config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
-      config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 3.5;
-      config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
-      config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
-
-      tryUntilOk(5, () -> climberMotor.getConfigurator().apply(config));
-    }
-
-    @Override
-    public void periodic() {
-      // climberMotor.set(RobotContainer.opperator.getRawAxis(1));
-      SmartDashboard.putNumber("climber number", climberMotor.getPosition().getValueAsDouble());
-    }
+    tryUntilOk(5, () -> climberMotor.getConfigurator().apply(config));
   }
-  */
+
+  @Override
+  public void periodic() {
+    // motor speed set in robot.java
+    SmartDashboard.putNumber("climber number", climberMotor.getPosition().getValueAsDouble());
+  }
+}

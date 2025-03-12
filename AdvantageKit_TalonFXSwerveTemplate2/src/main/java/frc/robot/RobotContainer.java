@@ -4,6 +4,7 @@ import static frc.robot.subsystems.vision.VisionConstants.camera0Name;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,16 +13,18 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
+import frc.robot.commands.autoGenerator;
 import frc.robot.commands.minipIntake;
 import frc.robot.commands.minipOut;
 import frc.robot.commands.moveElevator;
 import frc.robot.commands.toggleInverted;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.SuperStructure.autoAim;
-// import frc.robot.subsystems.SuperStructure.climber;
+import frc.robot.subsystems.SuperStructure.climber;
 import frc.robot.subsystems.SuperStructure.elevator;
 import frc.robot.subsystems.SuperStructure.minip;
 import frc.robot.subsystems.drive.Drive;
@@ -33,6 +36,7 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
+import java.util.Set;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -50,9 +54,9 @@ public class RobotContainer {
 
   private final elevator ELEVATOR = new elevator();
   private final minip MINIP = new minip();
-  // public final climber CLIMBER = new climber();
+  public final climber CLIMBER = new climber();
   private final autoAim AUTOAIM = new autoAim();
-
+  private final autoGenerator AUTOGENERATOR = new autoGenerator();
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
   public static final Joystick driver = new Joystick(0);
@@ -60,7 +64,7 @@ public class RobotContainer {
   private final JoystickButton buttonA = new JoystickButton(driver, 1);
   private final JoystickButton buttonB = new JoystickButton(driver, 2);
   // private final JoystickButton rightPaddle = new JoystickButton(driver, 3);
-  private final JoystickButton buttonX = new JoystickButton(driver, 3);
+  public static final JoystickButton buttonX = new JoystickButton(driver, 3);
   private final JoystickButton buttonY = new JoystickButton(driver, 4);
   // private final JoystickButton leftPaddle = new JoystickButton(driver, 6);
   private final JoystickButton buttonLB = new JoystickButton(driver, 5);
@@ -86,6 +90,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+
     switch (Constants.currentMode) {
       case REAL:
         // Real robot, instantiate hardware IO implementations
@@ -149,6 +154,14 @@ public class RobotContainer {
     }
 
     // NamedCommands.registerCommand("autoScoreL4", new autoScoreL4(ELEVATOR, MINIP));
+    NamedCommands.registerCommand(
+        "align left",
+        new DeferredCommand(
+            () -> autoGenerator.autoReefLeft(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
+    NamedCommands.registerCommand(
+        "align right",
+        new DeferredCommand(
+            () -> autoGenerator.autoReefRight(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -190,7 +203,7 @@ public class RobotContainer {
             drive,
             () -> -driver.getRawAxis(1) * Constants.teleopInvert,
             () -> -driver.getRawAxis(0) * Constants.teleopInvert,
-            () -> -driver.getRawAxis(4)));
+            () -> -driver.getRawAxis(5)));
 
     // Lock to 0° when A button is held
     /*buttonA.whileTrue(
@@ -207,21 +220,19 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
-    /*buttonX.whileTrue(
-    DriveCommands.alignToFeederCom(
-        drive,
-        () -> -driver.getRawAxis(1),
-        () -> -driver.getRawAxis(0),
-        () -> -driver.getRawAxis(4)));*/
-
     buttonLB.whileTrue(
-        DriveCommands.driveToNearestReefPoint(drive, AUTOAIM, () -> buttonRB.getAsBoolean()));
+        new DeferredCommand(() -> DriveCommands.alightToLeftSide(drive, AUTOAIM), Set.of(drive)));
+
+    buttonRB.whileTrue(
+        new DeferredCommand(() -> DriveCommands.alightToRightSide(drive, AUTOAIM), Set.of(drive)));
+
+    buttonA.whileTrue(
+        new DeferredCommand(() -> DriveCommands.alignToFeederNear(drive), Set.of(drive)));
+
+    buttonX.whileTrue(
+        new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
 
     buttonY.onTrue(new toggleInverted());
-
-    /*buttonY.whileTrue(
-    DriveCommands.AlighnToReef(
-        () -> -driver.getRawAxis(1), () -> -driver.getRawAxis(0), drive, AUTOAIM));*/
 
     // Opperator buttons
 

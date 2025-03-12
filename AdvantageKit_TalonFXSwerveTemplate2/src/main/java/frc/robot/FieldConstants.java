@@ -216,6 +216,8 @@ public class FieldConstants {
     }
 
     private final AprilTagFieldLayout layout;
+
+    @SuppressWarnings("unused")
     private final String layoutString;
   }
 

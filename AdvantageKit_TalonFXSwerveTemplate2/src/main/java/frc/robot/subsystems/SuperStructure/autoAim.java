@@ -9,39 +9,27 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldConstants;
 import frc.robot.RobotContainer;
+import frc.robot.util.FieldPOIs;
 import java.io.IOException;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonUtils;
 
 public class autoAim extends SubsystemBase {
-  private elevator ELEVATOR = new elevator();
-  // private RobotContainer robotContainer = new RobotContainer();
-  // private final Drive drive = RobotContainer.drive;
   private AprilTagFieldLayout layout;
   public static Pose2d closestPose2d;
   public static Pose2d rightSidePose2d;
-
-  enum reefLevel {
-    L1,
-    L2,
-    L3,
-    L4
-  }
-
-  enum reefSide {
-    right,
-    left
-  }
+  public static Rotation2d pathRotation2d;
 
   // TODO enum with switch case
   public autoAim() {
     try {
-      layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2025Reefscape.m_resourceFile);
+      layout =
+          AprilTagFieldLayout.loadFromResource(AprilTagFields.k2025ReefscapeWelded.m_resourceFile);
       layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
     } catch (IOException e) {
       DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
@@ -83,6 +71,59 @@ public class autoAim extends SubsystemBase {
         minIndex = i; // Update the index of the smallest number
       }
     }
+    SmartDashboard.putNumber("minIndex", minIndex);
+    switch (minIndex) {
+      case 0:
+        closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(2);
+        rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(2);
+        pathRotation2d = FieldConstants.Reef.centerFaces[0].getRotation();
+        break;
+      case 1:
+        closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(1);
+        rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(1);
+        pathRotation2d = FieldConstants.Reef.centerFaces[1].getRotation();
+        break;
+      case 2:
+        closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(0);
+        rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(0);
+        pathRotation2d = FieldConstants.Reef.centerFaces[2].getRotation();
+        break;
+      case 3:
+        closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(5);
+        rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(5);
+        pathRotation2d = FieldConstants.Reef.centerFaces[3].getRotation();
+        break;
+      case 4:
+        closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(4);
+        rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(4);
+        pathRotation2d = FieldConstants.Reef.centerFaces[4].getRotation();
+        break;
+      case 5:
+        closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(3);
+        rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(3);
+        pathRotation2d = FieldConstants.Reef.centerFaces[5].getRotation();
+        break;
+
+      default:
+        closestPose2d = new Pose2d();
+        rightSidePose2d = new Pose2d();
+        pathRotation2d = new Rotation2d();
+        break;
+    }
+
+    SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
+    SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
+    SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
+
+    Logger.recordOutput(
+        "wantedPose clostest",
+        closestPose2d.rotateAround(closestPose2d.getTranslation(), Rotation2d.kCCW_90deg));
+    Logger.recordOutput(
+        "wanted pose right",
+        rightSidePose2d.rotateAround(rightSidePose2d.getTranslation(), Rotation2d.kCCW_90deg));
+    Logger.recordOutput(
+        "on the fly path rotation", new Pose2d(closestPose2d.getTranslation(), pathRotation2d));
+
     /*
     switch (minIndex) {
       case 0:
@@ -92,9 +133,6 @@ public class autoAim extends SubsystemBase {
                     layout.getTagPose(Constants.autodrivingStuff.tag1).get().toPose2d().getX(),
                     layout.getTagPose(Constants.autodrivingStuff.tag1).get().toPose2d().getY()),
                 new Rotation2d(Units.degreesToRadians(-120)));
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
         break;
       case 1:
         closestPose2d =
@@ -103,9 +141,6 @@ public class autoAim extends SubsystemBase {
                     layout.getTagPose(Constants.autodrivingStuff.tag2).get().toPose2d().getX(),
                     layout.getTagPose(Constants.autodrivingStuff.tag2).get().toPose2d().getY()),
                 new Rotation2d(Units.degreesToRadians(180)));
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
         break;
       case 2:
         closestPose2d =
@@ -114,9 +149,6 @@ public class autoAim extends SubsystemBase {
                     layout.getTagPose(Constants.autodrivingStuff.tag3).get().toPose2d().getX(),
                     layout.getTagPose(Constants.autodrivingStuff.tag3).get().toPose2d().getY()),
                 new Rotation2d(Units.degreesToRadians(120)));
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
         break;
       case 3:
         closestPose2d =
@@ -125,9 +157,6 @@ public class autoAim extends SubsystemBase {
                     layout.getTagPose(Constants.autodrivingStuff.tag4).get().toPose2d().getX(),
                     layout.getTagPose(Constants.autodrivingStuff.tag4).get().toPose2d().getY()),
                 new Rotation2d(Units.degreesToRadians(60)));
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
         break;
       case 4:
         closestPose2d =
@@ -136,9 +165,6 @@ public class autoAim extends SubsystemBase {
                     layout.getTagPose(Constants.autodrivingStuff.tag5).get().toPose2d().getX(),
                     layout.getTagPose(Constants.autodrivingStuff.tag5).get().toPose2d().getY()),
                 new Rotation2d(0));
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
         break;
       case 5:
         closestPose2d =
@@ -147,9 +173,6 @@ public class autoAim extends SubsystemBase {
                     layout.getTagPose(Constants.autodrivingStuff.tag6).get().toPose2d().getX(),
                     layout.getTagPose(Constants.autodrivingStuff.tag6).get().toPose2d().getY()),
                 new Rotation2d(Units.degreesToRadians(-60)));
-        SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-        SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-        SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees());
         break;
 
       default:
@@ -158,97 +181,74 @@ public class autoAim extends SubsystemBase {
         break;
     }*/
 
-    double xOffset = 0.47;
-    double yLeftOffset = 0.3;
-    double yRightOffset = 0.6;
-    Pose2d wantedPose2d;
+    /*
+        double xOffset = 0.47;
+        double yLeftOffset = 0.3;
+        double yRightOffset = 0.6;
+        Pose2d wantedPose2d;
 
-    switch (minIndex) {
-      case 0:
-        closestPose2d =
-            new Pose2d(
-                new Translation2d(
-                    FieldConstants.Reef.centerFaces[0].getX() - 0.47,
-                    FieldConstants.Reef.centerFaces[0].getY() + 0.3),
-                FieldConstants.Reef.centerFaces[0].getRotation());
-        rightSidePose2d =
-            new Pose2d(
-                new Translation2d(closestPose2d.getX(), closestPose2d.getY() - 0.3),
-                closestPose2d.getRotation());
-        break;
-      case 1:
-        closestPose2d =
-            new Pose2d(
-                new Translation2d(4.13, 5.29), FieldConstants.Reef.centerFaces[1].getRotation());
-        rightSidePose2d = new Pose2d(new Translation2d(3.81, 5.11), closestPose2d.getRotation());
-        break;
-      case 2:
-        closestPose2d =
-            new Pose2d(
-                new Translation2d(
-                    FieldConstants.Reef.centerFaces[2].getX(),
-                    FieldConstants.Reef.centerFaces[2].getY()),
-                FieldConstants.Reef.centerFaces[2].getRotation());
-        rightSidePose2d = closestPose2d;
-        break;
-      case 3:
-        closestPose2d =
-            new Pose2d(
-                new Translation2d(
-                    FieldConstants.Reef.centerFaces[3].getX() + 0.47,
-                    FieldConstants.Reef.centerFaces[3].getY() - 0.3),
-                FieldConstants.Reef.centerFaces[3].getRotation());
-        rightSidePose2d =
-            new Pose2d(
-                new Translation2d(closestPose2d.getX(), closestPose2d.getY() + 0.3),
-                closestPose2d.getRotation());
-        break;
-      case 4:
-        closestPose2d =
-            new Pose2d(
-                new Translation2d(4.78, 2.76), FieldConstants.Reef.centerFaces[4].getRotation());
-        rightSidePose2d = new Pose2d(new Translation2d(5.14, 2.91), closestPose2d.getRotation());
-        break;
-      case 5:
-        closestPose2d =
-            new Pose2d(
-                new Translation2d(
-                    FieldConstants.Reef.centerFaces[5].getX(),
-                    FieldConstants.Reef.centerFaces[5].getY()),
-                FieldConstants.Reef.centerFaces[5].getRotation());
-        rightSidePose2d = closestPose2d;
-        break;
+        switch (minIndex) {
+          case 0:
+            closestPose2d =
+                new Pose2d(
+                    new Translation2d(
+                        FieldConstants.Reef.centerFaces[0].getX() - 0.47,
+                        FieldConstants.Reef.centerFaces[0].getY() + 0.3),
+                    FieldConstants.Reef.centerFaces[0].getRotation());
+            rightSidePose2d =
+                new Pose2d(
+                    new Translation2d(closestPose2d.getX(), closestPose2d.getY() - 0.3),
+                    closestPose2d.getRotation());
+            break;
+          case 1:
+            closestPose2d =
+                new Pose2d(
+                    new Translation2d(4.13, 5.29), FieldConstants.Reef.centerFaces[1].getRotation());
+            rightSidePose2d = new Pose2d(new Translation2d(3.81, 5.11), closestPose2d.getRotation());
+            break;
+          case 2:
+            closestPose2d =
+                new Pose2d(
+                    new Translation2d(
+                        FieldConstants.Reef.centerFaces[2].getX(),
+                        FieldConstants.Reef.centerFaces[2].getY()),
+                    FieldConstants.Reef.centerFaces[2].getRotation());
+            rightSidePose2d = closestPose2d;
+            break;
+          case 3:
+            closestPose2d =
+                new Pose2d(
+                    new Translation2d(
+                        FieldConstants.Reef.centerFaces[3].getX() + 0.47,
+                        FieldConstants.Reef.centerFaces[3].getY() - 0.3),
+                    FieldConstants.Reef.centerFaces[3].getRotation());
+            rightSidePose2d =
+                new Pose2d(
+                    new Translation2d(closestPose2d.getX(), closestPose2d.getY() + 0.3),
+                    closestPose2d.getRotation());
+            break;
+          case 4:
+            closestPose2d =
+                new Pose2d(
+                    new Translation2d(4.78, 2.76), FieldConstants.Reef.centerFaces[4].getRotation());
+            rightSidePose2d = new Pose2d(new Translation2d(5.14, 2.91), closestPose2d.getRotation());
+            break;
+          case 5:
+            closestPose2d =
+                new Pose2d(
+                    new Translation2d(
+                        FieldConstants.Reef.centerFaces[5].getX(),
+                        FieldConstants.Reef.centerFaces[5].getY()),
+                    FieldConstants.Reef.centerFaces[5].getRotation());
+            rightSidePose2d = closestPose2d;
+            break;
 
-      default:
-        closestPose2d = new Pose2d();
-        rightSidePose2d = new Pose2d();
-        break;
-    }
+          default:
+            closestPose2d = new Pose2d();
+            rightSidePose2d = new Pose2d();
+            break;
+        }
+    */
 
-    SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
-    SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
-    SmartDashboard.putNumber("wanted pose rota", closestPose2d.getRotation().getDegrees() - 90);
-  }
-
-  /**
-   * @param side what side of the reef. Acepts "right" and "left"
-   * @param level what level. Acepts "L1", "L2", "L3", "L4"
-   * @return returns double array with elevator hight,
-   */
-  public static double[] createElevatorCmd(reefSide side, reefLevel level) {
-
-    return null;
-  }
-
-  public static Pose2d alignToCoordinatePlane(double x, double y) {
-    // Rotation matrix for -60 degrees
-    double cosTheta = Math.cos(60); // cos(-60°) = cos(60°) = 0.5
-    double sinTheta = Math.sin(60); // sin(-60°) = -sin(60°) = -0.866
-
-    // Apply 2D rotation transformation
-    double alignedX = (x * cosTheta) - (y * sinTheta);
-    double alignedY = (x * sinTheta) + (y * cosTheta);
-
-    return new Pose2d(new Translation2d(alignedX, alignedY), new Rotation2d());
   }
 }
