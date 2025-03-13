@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldConstants;
 import frc.robot.RobotContainer;
+import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.FieldPOIs;
 import java.io.IOException;
 import org.littletonrobotics.junction.Logger;
@@ -250,5 +251,20 @@ public class autoAim extends SubsystemBase {
         }
     */
 
+  }
+  /**
+   * @param goalPose the target position in Pose2d form
+   * @param drive Drive subsystem
+   * @return target angle as Rotation2d from radians
+   */
+  public static Rotation2d targetAngle(Pose2d goalPose, Drive drive) {
+    Pose2d curPose2d = drive.getPose();
+    double deltaX = goalPose.getX() - curPose2d.getX();
+    double deltaY = goalPose.getY() - curPose2d.getY();
+
+    double targetAngle = Math.atan2(deltaY, deltaX);
+
+    // SmartDashboard.putNumber("target angle", Units.radiansToDegrees(targetAngle));
+    return Rotation2d.fromRadians(targetAngle);
   }
 }

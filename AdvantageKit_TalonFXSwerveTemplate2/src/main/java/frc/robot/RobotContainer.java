@@ -85,6 +85,13 @@ public class RobotContainer {
   private static final JoystickButton oppButtonRB = new JoystickButton(opperator, 6);
   private static final JoystickButton oppButton7 = new JoystickButton(opperator, 7);
 
+  private static final Joystick keyboard = new Joystick(2);
+
+  private static final JoystickButton key1 = new JoystickButton(keyboard, 1);
+  private static final JoystickButton key2 = new JoystickButton(keyboard, 2);
+  private static final JoystickButton key3 = new JoystickButton(keyboard, 3);
+  private static final JoystickButton key4 = new JoystickButton(keyboard, 4);
+
   // Dashboard inputs
   private final LoggedDashboardChooser<Command> autoChooser;
 
@@ -199,11 +206,20 @@ public class RobotContainer {
     // Default command, normal field-relative drive
 
     drive.setDefaultCommand(
-        DriveCommands.joystickDrive(
+        DriveCommands.joystickDrive( // TODO changed for TETSUYA CONTROLLER
             drive,
             () -> -driver.getRawAxis(1) * Constants.teleopInvert,
             () -> -driver.getRawAxis(0) * Constants.teleopInvert,
-            () -> -driver.getRawAxis(5)));
+            () -> -driver.getRawAxis(2)));
+
+    // Testing drive commands
+    /*
+    drive.setDefaultCommand(
+        DriveCommands.joystickDrive(
+            drive,
+            () -> -keyboard.getRawAxis(1) * Constants.teleopInvert,
+            () -> -keyboard.getRawAxis(0) * Constants.teleopInvert,
+            () -> -keyboard.getRawAxis(2)));*/
 
     // Lock to 0° when A button is held
     /*buttonA.whileTrue(
@@ -235,13 +251,24 @@ public class RobotContainer {
     buttonY.onTrue(new toggleInverted());
 
     // Opperator buttons
-
     oppButtonA.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L1)); // resting
     oppButtonB.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L2)); // L2
     oppButtonX.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L3)); // L3
     oppButtonY.onTrue(new moveElevator(ELEVATOR, Constants.reefLevels.L4)); // L4
     oppButtonRB.whileTrue(new minipOut(MINIP));
     oppButtonLB.whileTrue(new minipIntake(MINIP));
+
+    // Keyboard buttons for debugging
+    key1.whileTrue(
+        new DeferredCommand(
+            () -> DriveCommands.alightToLeftSide(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
+    key2.whileTrue(
+        new DeferredCommand(
+            () -> DriveCommands.alightToRightSide(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
+    key3.whileTrue(
+        new DeferredCommand(() -> DriveCommands.alignToFeederNear(drive), Set.of(drive)));
+    key4.whileTrue(new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
+    // key4.whileTrue(DriveCommands.testContinuouslyUpdatingPath(drive));
   }
 
   /**

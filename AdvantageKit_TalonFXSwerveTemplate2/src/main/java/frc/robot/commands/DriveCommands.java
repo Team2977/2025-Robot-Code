@@ -73,11 +73,6 @@ public class DriveCommands {
         .getTranslation();
   }
 
-  public static Command TEMPLATE(Drive drive, double someDouble, boolean someBoolean) {
-
-    return Commands.run(() -> {}, drive);
-  }
-
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
@@ -127,11 +122,13 @@ public class DriveCommands {
   public static Command alightToLeftSide(Drive drive, autoAim autoAim) {
     Pose2d curPose = drive.getPose();
     Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.closestPose2d;
+    Rotation2d targetAngle =
+        frc.robot.subsystems.SuperStructure.autoAim.targetAngle(goalPose, drive);
 
     List<Waypoint> waypoints =
         PathPlannerPath.waypointsFromPoses(
-            new Pose2d(curPose.getX(), curPose.getY(), Rotation2d.fromDegrees(0)),
-            new Pose2d(goalPose.getX(), goalPose.getY(), Rotation2d.fromDegrees(0)));
+            new Pose2d(curPose.getX(), curPose.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
 
     // The values are low so if anything goes wrong we can disable the robot
     // PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
@@ -145,11 +142,9 @@ public class DriveCommands {
             null,
             new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
 
-    if (DriverStation.getAlliance().get() == Alliance.Red) {
-      return AutoBuilder.followPath(alignmentPath.flipPath());
-    } else {
-      return AutoBuilder.followPath(alignmentPath);
-    }
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
   }
 
   // ################################################ alignn to reef Right side
@@ -161,12 +156,13 @@ public class DriveCommands {
   public static Command alightToRightSide(Drive drive, autoAim autoAim) {
     Pose2d curPose = drive.getPose();
     Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.rightSidePose2d;
-    // Rotation2d pathRotation2d = frc.robot.subsystems.SuperStructure.autoAim.pathRotation2d;
+    Rotation2d targetAngle =
+        frc.robot.subsystems.SuperStructure.autoAim.targetAngle(goalPose, drive);
 
     List<Waypoint> waypoints =
         PathPlannerPath.waypointsFromPoses(
-            new Pose2d(curPose.getX(), curPose.getY(), Rotation2d.fromDegrees(0)),
-            new Pose2d(goalPose.getX(), goalPose.getY(), Rotation2d.fromDegrees(0)));
+            new Pose2d(curPose.getX(), curPose.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
 
     // The values are low so if anything goes wrong we can disable the robot
     // PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
@@ -180,13 +176,39 @@ public class DriveCommands {
             null,
             new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
 
-    // Logger.recordOutput("wantedPose", goalPose);
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
+  }
 
-    if (DriverStation.getAlliance().get() == Alliance.Red) {
-      return AutoBuilder.followPath(alignmentPath.flipPath());
-    } else {
-      return AutoBuilder.followPath(alignmentPath);
-    }
+  // ################################################## testing
+  public static Command testContinuouslyUpdatingPath(Drive drive) {
+    // return new DeferredCommand(() -> autoBuilderSub.updatingPathCommand(drive), Set.of(drive));
+
+    Pose2d curPose = drive.getPose();
+    Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.rightSidePose2d;
+    Rotation2d targetAngle = autoAim.targetAngle(goalPose, drive);
+
+    List<Waypoint> waypoints =
+        PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose.getX(), curPose.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
+
+    // The values are low so if anything goes wrong we can disable the robot
+    // PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
+    PathConstraints constraints =
+        new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
+
+    PathPlannerPath alignmentPath =
+        new PathPlannerPath(
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
+
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
   }
 
   // ##################################### ALIGN TO FEEDER FAR
@@ -197,10 +219,6 @@ public class DriveCommands {
   public static Command alignToFeederFar(Drive drive) {
     Pose2d leftFeederFar = new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36));
     Pose2d rightFeederFar = new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(-36));
-    // Pose2d rightFeederNear = new Pose2d(new Translation2d(0.67, 1.31),
-    // Rotation2d.fromDegrees(-36));
-    // Pose2d leftFeederNear = new Pose2d(new Translation2d(0.74, 6.81),
-    // Rotation2d.fromDegrees(36));
 
     Pose2d curPose2d = drive.getPose();
     Pose2d goalPose = curPose2d;
@@ -215,12 +233,11 @@ public class DriveCommands {
     } else {
       goalPose = rightFeederFar;
     }
-    Rotation2d yaw = PhotonUtils.getYawToPose(curPose2d, goalPose);
-    SmartDashboard.putNumber("yaw", yaw.getDegrees());
+    Rotation2d targetAngle = autoAim.targetAngle(goalPose, drive);
     List<Waypoint> waypoints =
         PathPlannerPath.waypointsFromPoses(
-            new Pose2d(curPose2d.getX(), curPose2d.getY(), yaw),
-            new Pose2d(goalPose.getX(), goalPose.getY(), yaw.times(-1)));
+            new Pose2d(curPose2d.getX(), curPose2d.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
 
     PathConstraints constraints =
         new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
@@ -229,11 +246,9 @@ public class DriveCommands {
         new PathPlannerPath(
             waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
 
-    if (DriverStation.getAlliance().get() == Alliance.Red) {
-      return AutoBuilder.followPath(alignmentPath.flipPath());
-    } else {
-      return AutoBuilder.followPath(alignmentPath);
-    }
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
   }
 
   // ############################################ alighn to reef near
@@ -244,9 +259,6 @@ public class DriveCommands {
   public static Command alignToFeederNear(Drive drive) {
     Pose2d leftFeederNear = new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(36));
     Pose2d rightFeederNear = new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(-36));
-    // Pose2d rightFeederFar = new Pose2d(new Translation2d(1.63, 0.64),
-    // Rotation2d.fromDegrees(-36));
-    // Pose2d leftFeederFar = new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36));
 
     Pose2d curPose2d = drive.getPose();
     Pose2d goalPose = curPose2d;
@@ -254,18 +266,17 @@ public class DriveCommands {
     double leftDis = PhotonUtils.getDistanceToPose(curPose2d, leftFeederNear);
     double rightDis = PhotonUtils.getDistanceToPose(curPose2d, rightFeederNear);
 
-    // left
-
-    if (leftDis < rightDis) {
+    if (leftDis < rightDis) { // Left
       goalPose = leftFeederNear;
-    } else {
+    } else { // Right
       goalPose = rightFeederNear;
     }
 
+    Rotation2d targetAngle = autoAim.targetAngle(goalPose, drive);
     List<Waypoint> waypoints =
         PathPlannerPath.waypointsFromPoses(
-            new Pose2d(curPose2d.getX(), curPose2d.getY(), Rotation2d.fromDegrees(0)),
-            new Pose2d(goalPose.getX(), goalPose.getY(), Rotation2d.fromDegrees(0)));
+            new Pose2d(curPose2d.getX(), curPose2d.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
 
     PathConstraints constraints =
         new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
@@ -274,11 +285,9 @@ public class DriveCommands {
         new PathPlannerPath(
             waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
 
-    if (DriverStation.getAlliance().get() == Alliance.Red) {
-      return AutoBuilder.followPath(alignmentPath.flipPath());
-    } else {
-      return AutoBuilder.followPath(alignmentPath);
-    }
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
   }
 
   // #################################### JOYSTICK DRIVE AT ANGLE
