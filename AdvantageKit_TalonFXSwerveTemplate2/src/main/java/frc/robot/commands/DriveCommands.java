@@ -140,7 +140,7 @@ public class DriveCommands {
             waypoints,
             constraints,
             null,
-            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCW_Pi_2)));
 
     return DriverStation.getAlliance().get() == Alliance.Red
         ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
@@ -174,7 +174,7 @@ public class DriveCommands {
             waypoints,
             constraints,
             null,
-            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCW_Pi_2)));
 
     return DriverStation.getAlliance().get() == Alliance.Red
         ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
@@ -227,7 +227,6 @@ public class DriveCommands {
     double rightDis = PhotonUtils.getDistanceToPose(curPose2d, rightFeederFar);
 
     // left
-
     if (leftDis < rightDis) {
       goalPose = leftFeederFar;
     } else {
@@ -244,7 +243,10 @@ public class DriveCommands {
 
     PathPlannerPath alignmentPath =
         new PathPlannerPath(
-            waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.k180deg)));
 
     return DriverStation.getAlliance().get() == Alliance.Red
         ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
@@ -283,7 +285,10 @@ public class DriveCommands {
 
     PathPlannerPath alignmentPath =
         new PathPlannerPath(
-            waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.k180deg)));
 
     return DriverStation.getAlliance().get() == Alliance.Red
         ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red

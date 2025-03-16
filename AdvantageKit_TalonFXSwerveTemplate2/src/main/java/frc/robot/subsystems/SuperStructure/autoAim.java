@@ -118,10 +118,10 @@ public class autoAim extends SubsystemBase {
 
     Logger.recordOutput(
         "wantedPose clostest",
-        closestPose2d.rotateAround(closestPose2d.getTranslation(), Rotation2d.kCCW_90deg));
+        closestPose2d.rotateAround(closestPose2d.getTranslation(), Rotation2d.kCW_Pi_2));
     Logger.recordOutput(
         "wanted pose right",
-        rightSidePose2d.rotateAround(rightSidePose2d.getTranslation(), Rotation2d.kCCW_90deg));
+        rightSidePose2d.rotateAround(rightSidePose2d.getTranslation(), Rotation2d.kCW_Pi_2));
     Logger.recordOutput(
         "on the fly path rotation", new Pose2d(closestPose2d.getTranslation(), pathRotation2d));
 
