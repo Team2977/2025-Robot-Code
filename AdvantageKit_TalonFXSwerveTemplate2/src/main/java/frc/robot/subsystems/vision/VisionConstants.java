@@ -56,4 +56,12 @@ public class VisionConstants {
   public static double linearStdDevMegatag2Factor = 0.5; // More stable than full 3D solve
   public static double angularStdDevMegatag2Factor =
       Double.POSITIVE_INFINITY; // No rotation data available
+
+  public class visionAlianceUtil {
+
+    public static int switchUtil(int tagID) {
+
+      return 0;
+    }
+  }
 }

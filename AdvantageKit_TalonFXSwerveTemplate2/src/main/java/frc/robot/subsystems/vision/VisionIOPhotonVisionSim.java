@@ -43,6 +43,7 @@ public class VisionIOPhotonVisionSim extends VisionIOPhotonVision {
     // Initialize vision sim
     if (visionSim == null) {
       visionSim = new VisionSystemSim("main");
+      // aprilTagLayout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
       visionSim.addAprilTags(aprilTagLayout);
     }
 
