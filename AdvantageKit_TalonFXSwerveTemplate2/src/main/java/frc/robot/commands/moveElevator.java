@@ -15,7 +15,12 @@ import frc.robot.subsystems.SuperStructure.elevator;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class moveElevator extends Command {
   private final ProfiledPIDController controller =
-      new ProfiledPIDController(0.25, 0.05, 0, new TrapezoidProfile.Constraints(100, 200));
+      new ProfiledPIDController(
+          Constants.elevatorConstants.kp,
+          Constants.elevatorConstants.ki,
+          Constants.elevatorConstants.kd,
+          new TrapezoidProfile.Constraints(
+              Constants.elevatorConstants.maxVel, Constants.elevatorConstants.maxAccel));
   private elevator ELEVATOR;
   private double Goal;
   private boolean finishCommand;

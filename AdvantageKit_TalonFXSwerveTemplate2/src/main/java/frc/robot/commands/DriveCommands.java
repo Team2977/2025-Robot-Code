@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants;
 import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.drive.Drive;
 import frc.robot.util.AllianceFlipUtil;
@@ -224,16 +225,12 @@ public class DriveCommands {
     if (DriverStation.getAlliance().isPresent()
         && DriverStation.getAlliance().get() == Alliance.Red) {
       // RED
-      leftFeederFar =
-          AllianceFlipUtil.apply(
-              new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36)));
-      rightFeederFar =
-          AllianceFlipUtil.apply(
-              new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(-36)));
+      leftFeederFar = AllianceFlipUtil.apply(Constants.automaticAlingment.feederFarLeft);
+      rightFeederFar = AllianceFlipUtil.apply(Constants.automaticAlingment.feederFarRight);
     } else {
       // BLUE
-      leftFeederFar = new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36));
-      rightFeederFar = new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(-36));
+      leftFeederFar = Constants.automaticAlingment.feederFarLeft;
+      rightFeederFar = Constants.automaticAlingment.feederFarRight;
     }
 
     Pose2d curPose2d = drive.getPose();
@@ -259,10 +256,7 @@ public class DriveCommands {
 
     PathPlannerPath alignmentPath =
         new PathPlannerPath(
-            waypoints,
-            constraints,
-            null,
-            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.k180deg)));
+            waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
 
     return DriverStation.getAlliance().get() == Alliance.Red
         ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
@@ -281,16 +275,12 @@ public class DriveCommands {
     if (DriverStation.getAlliance().isPresent()
         && DriverStation.getAlliance().get() == Alliance.Red) {
       // RED
-      leftFeederNear =
-          AllianceFlipUtil.apply(
-              new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(36)));
-      rightFeederNear =
-          AllianceFlipUtil.apply(
-              new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(-36)));
+      leftFeederNear = AllianceFlipUtil.apply(Constants.automaticAlingment.feederNearLeft);
+      rightFeederNear = AllianceFlipUtil.apply(Constants.automaticAlingment.feederNearRight);
     } else {
       // BLUE
-      leftFeederNear = new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(36));
-      rightFeederNear = new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(-36));
+      leftFeederNear = Constants.automaticAlingment.feederNearLeft;
+      rightFeederNear = Constants.automaticAlingment.feederFarRight;
     }
 
     Pose2d curPose2d = drive.getPose();
@@ -316,10 +306,7 @@ public class DriveCommands {
 
     PathPlannerPath alignmentPath =
         new PathPlannerPath(
-            waypoints,
-            constraints,
-            null,
-            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.k180deg)));
+            waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
 
     return DriverStation.getAlliance().get() == Alliance.Red
         ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red

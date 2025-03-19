@@ -103,6 +103,7 @@ public class autoAim extends SubsystemBase {
             PhotonUtils.getDistanceToPose(
                 RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[5]);
         break;
+
       case 1: // BLUE
         tagDis1 =
             PhotonUtils.getDistanceToPose(

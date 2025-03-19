@@ -9,13 +9,19 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants;
 import frc.robot.subsystems.SuperStructure.autoAim;
+import frc.robot.subsystems.SuperStructure.elevator;
 import frc.robot.subsystems.drive.Drive;
 import java.util.List;
 
@@ -49,15 +55,15 @@ public class autoGenerator {
             waypoints,
             constraints,
             null,
-            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCW_90deg)));
 
-    /*if (DriverStation.getAlliance().get() == Alliance.Red) {
+    if (DriverStation.getAlliance().get() == Alliance.Red) {
       return AutoBuilder.followPath(alignmentPath.flipPath());
     } else {
       return AutoBuilder.followPath(alignmentPath);
-    }*/
+    }
 
-    return AutoBuilder.followPath(alignmentPath);
+    // return AutoBuilder.followPath(alignmentPath);
   }
 
   // ################################################ alignn to reef Right side
@@ -88,12 +94,42 @@ public class autoGenerator {
             waypoints,
             constraints,
             null,
-            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCW_90deg)));
 
     if (DriverStation.getAlliance().get() == Alliance.Red) {
       return AutoBuilder.followPath(alignmentPath.flipPath());
     } else {
       return AutoBuilder.followPath(alignmentPath);
     }
+  }
+
+  /**
+   * The diffrence between this and moveElevator.java is this has a timeout for auto. Currently
+   * timeout is at 3 seconds
+   *
+   * @param elevator Elevator subsystem
+   * @param goal The wanted goal of the elevator in rotaions of the motor
+   * @return Command to run the elevator in auto
+   */
+  public static Command autoMoveElevator(elevator elevator, double goal) {
+    final ProfiledPIDController controller =
+        new ProfiledPIDController(
+            Constants.elevatorConstants.kp,
+            Constants.elevatorConstants.ki,
+            Constants.elevatorConstants.kd,
+            new TrapezoidProfile.Constraints(
+                Constants.elevatorConstants.maxVel, Constants.elevatorConstants.maxAccel));
+
+    return Commands.run(
+            () -> {
+              Constants.elevatorGoal =
+                  controller.calculate(elevator.leader.getPosition().getValueAsDouble(), goal);
+              SmartDashboard.putBoolean("mvoing", true);
+            },
+            elevator)
+        .beforeStarting(() -> controller.reset(elevator.leader.getPosition().getValueAsDouble()))
+        .finallyDo(() -> controller.atGoal())
+        .finallyDo(() -> SmartDashboard.putBoolean("mvoing", true))
+        .withTimeout(3);
   }
 }

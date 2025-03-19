@@ -8,7 +8,6 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -135,13 +134,6 @@ public class RobotContainer {
                 drive::addVisionMeasurement,
                 new VisionIOPhotonVisionSim(camera0Name, robotToCamera0, drive::getPose),
                 new VisionIOPhotonVisionSim(camera1Name, robotToCamera1, drive::getPose));
-        // drive::addVisionMeasurement,
-        // new VisionIOPhotonVisionSim(
-        //  camera0Name, robotToCamera0, drive::getPose)); // Default Vision for SIM
-
-        // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 0.2,
-        // 0.1));
-
         break;
 
       default:
@@ -156,11 +148,9 @@ public class RobotContainer {
         vision =
             new Vision(
                 drive::addVisionMeasurement,
+                new VisionIOPhotonVision(camera0Name, robotToCamera0),
                 new VisionIOPhotonVision(
-                    camera0Name, robotToCamera0)); // Default Vision for DEFAULT
-
-        // motor = new Motor("leftElevatorMotor", new MotorIOSim(DCMotor.getFalcon500(1), 1, 0.1));
-
+                    camera1Name, robotToCamera1)); // Default Vision for DEFAULT
         break;
     }
 
@@ -173,6 +163,8 @@ public class RobotContainer {
         "align right",
         new DeferredCommand(
             () -> autoGenerator.autoReefRight(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
+    NamedCommands.registerCommand(
+        "autoMoveElevator", autoGenerator.autoMoveElevator(ELEVATOR, Constants.reefLevels.L4));
 
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
@@ -210,11 +202,11 @@ public class RobotContainer {
     // Default command, normal field-relative drive
 
     drive.setDefaultCommand(
-        DriveCommands.joystickDrive( // TODO changed for TETSUYA CONTROLLER
+        DriveCommands.joystickDrive(
             drive,
             () -> -driver.getRawAxis(1) * Constants.teleopInvert,
             () -> -driver.getRawAxis(0) * Constants.teleopInvert,
-            () -> -driver.getRawAxis(2)));
+            () -> -driver.getRawAxis(4)));
 
     // Testing drive commands
     /*
@@ -223,7 +215,7 @@ public class RobotContainer {
             drive,
             () -> -keyboard.getRawAxis(1) * Constants.teleopInvert,
             () -> -keyboard.getRawAxis(0) * Constants.teleopInvert,
-            () -> -keyboard.getRawAxis(2)));*/
+            () -> -keyboard.getRawAxis(2))); */
 
     // Lock to 0° when A button is held
     /*buttonA.whileTrue(
@@ -235,10 +227,10 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     buttonB.onTrue(
-    Commands.runOnce(
-            () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-            drive)
-        .ignoringDisable(true)); 
+        Commands.runOnce(
+                () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+                drive)
+            .ignoringDisable(true));
 
     buttonLB.whileTrue(
         new DeferredCommand(() -> DriveCommands.alightToLeftSide(drive, AUTOAIM), Set.of(drive)));
@@ -272,7 +264,7 @@ public class RobotContainer {
     key3.whileTrue(
         new DeferredCommand(() -> DriveCommands.alignToFeederNear(drive), Set.of(drive)));
     key4.whileTrue(new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
-    // key4.whileTrue(DriveCommands.testContinuouslyUpdatingPath(drive));
+    key4.whileTrue(new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
   }
 
   /**
