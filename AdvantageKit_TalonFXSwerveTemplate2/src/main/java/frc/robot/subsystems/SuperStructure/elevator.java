@@ -22,9 +22,9 @@ import org.littletonrobotics.junction.Logger;
 
 public class elevator extends SubsystemBase {
   /** Creates a new elevator. */
-  public static final TalonFX leader = new TalonFX(6, "rio");
+  public static final TalonFX leader = new TalonFX(6, "driveBase");
 
-  private static final TalonFX follower = new TalonFX(7, "rio");
+  private static final TalonFX follower = new TalonFX(7, "driveBase");
 
   // motion magic does math in the background, runs on motor. Not used. we use PID loops instead.
   // private static final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
