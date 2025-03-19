@@ -213,7 +213,7 @@ public class RobotContainer {
             drive,
             () -> -driver.getRawAxis(1) * Constants.teleopInvert,
             () -> -driver.getRawAxis(0) * Constants.teleopInvert,
-            () -> -driver.getRawAxis(2)));
+            () -> -driver.getRawAxis(4)));
 
     // Testing drive commands
     /*
