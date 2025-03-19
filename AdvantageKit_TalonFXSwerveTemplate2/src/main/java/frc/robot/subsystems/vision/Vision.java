@@ -15,6 +15,7 @@ package frc.robot.subsystems.vision;
 
 import static frc.robot.subsystems.vision.VisionConstants.*;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -54,7 +55,7 @@ public class Vision extends SubsystemBase {
               "Vision camera " + Integer.toString(i) + " is disconnected.", AlertType.kWarning);
     }
 
-    // aprilTagLayout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
+    aprilTagLayout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
   }
 
   /**
