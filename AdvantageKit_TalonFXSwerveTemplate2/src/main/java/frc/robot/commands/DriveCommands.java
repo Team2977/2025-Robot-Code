@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.AllianceFlipUtil;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -217,8 +218,23 @@ public class DriveCommands {
    * @return pathplanner command to drive to nearest feederstation at the far point
    */
   public static Command alignToFeederFar(Drive drive) {
-    Pose2d leftFeederFar = new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36));
-    Pose2d rightFeederFar = new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(-36));
+    Pose2d leftFeederFar;
+    Pose2d rightFeederFar;
+
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      // RED
+      leftFeederFar =
+          AllianceFlipUtil.apply(
+              new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36)));
+      rightFeederFar =
+          AllianceFlipUtil.apply(
+              new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(-36)));
+    } else {
+      // BLUE
+      leftFeederFar = new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(36));
+      rightFeederFar = new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(-36));
+    }
 
     Pose2d curPose2d = drive.getPose();
     Pose2d goalPose = curPose2d;
@@ -259,8 +275,23 @@ public class DriveCommands {
    * @return pathplanner command to drive to the nearest feeder station at the near point
    */
   public static Command alignToFeederNear(Drive drive) {
-    Pose2d leftFeederNear = new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(36));
-    Pose2d rightFeederNear = new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(-36));
+    Pose2d leftFeederNear;
+    Pose2d rightFeederNear;
+
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      // RED
+      leftFeederNear =
+          AllianceFlipUtil.apply(
+              new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(36)));
+      rightFeederNear =
+          AllianceFlipUtil.apply(
+              new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(-36)));
+    } else {
+      // BLUE
+      leftFeederNear = new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(36));
+      rightFeederNear = new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(-36));
+    }
 
     Pose2d curPose2d = drive.getPose();
     Pose2d goalPose = curPose2d;

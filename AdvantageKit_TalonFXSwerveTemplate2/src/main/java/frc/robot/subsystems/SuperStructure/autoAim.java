@@ -10,11 +10,13 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldConstants;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.drive.Drive;
+import frc.robot.util.AllianceFlipUtil;
 import frc.robot.util.FieldPOIs;
 import java.io.IOException;
 import org.littletonrobotics.junction.Logger;
@@ -24,7 +26,14 @@ public class autoAim extends SubsystemBase {
   private AprilTagFieldLayout layout;
   public static Pose2d closestPose2d;
   public static Pose2d rightSidePose2d;
-  public static Rotation2d pathRotation2d;
+  // private Drive drive;
+
+  private double tagDis1;
+  private double tagDis2;
+  private double tagDis3;
+  private double tagDis4;
+  private double tagDis5;
+  private double tagDis6;
 
   // TODO enum with switch case
   public autoAim() {
@@ -38,6 +47,26 @@ public class autoAim extends SubsystemBase {
     }
 
     // layout.setOrigin(OriginPosition.kRedAllianceWallRightSide);
+
+    /*
+    tagDis1 =
+        PhotonUtils.getDistanceToPose(
+            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[0]);
+    tagDis2 =
+        PhotonUtils.getDistanceToPose(
+            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[1]);
+    tagDis3 =
+        PhotonUtils.getDistanceToPose(
+            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[2]);
+    tagDis4 =
+        PhotonUtils.getDistanceToPose(
+            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[3]);
+    tagDis5 =
+        PhotonUtils.getDistanceToPose(
+            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[4]);
+    tagDis6 =
+        PhotonUtils.getDistanceToPose(
+            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[5]);*/
   }
 
   @Override
@@ -45,24 +74,65 @@ public class autoAim extends SubsystemBase {
     // This method will be called once per scheduler run
     // 6 - 11
 
-    double tagDis1 =
-        PhotonUtils.getDistanceToPose(
-            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[0]);
-    double tagDis2 =
-        PhotonUtils.getDistanceToPose(
-            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[1]);
-    double tagDis3 =
-        PhotonUtils.getDistanceToPose(
-            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[2]);
-    double tagDis4 =
-        PhotonUtils.getDistanceToPose(
-            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[3]);
-    double tagDis5 =
-        PhotonUtils.getDistanceToPose(
-            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[4]);
-    double tagDis6 =
-        PhotonUtils.getDistanceToPose(
-            RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[5]);
+    int onRedTeam;
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      onRedTeam = 1;
+    } else {
+      onRedTeam = 0;
+    }
+
+    switch (onRedTeam) {
+      case 0: // RED
+        tagDis1 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[0]);
+        tagDis2 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[1]);
+        tagDis3 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[2]);
+        tagDis4 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[3]);
+        tagDis5 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[4]);
+        tagDis6 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(), FieldConstants.Reef.centerFaces[5]);
+        break;
+      case 1: // BLUE
+        tagDis1 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(),
+                AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[0]));
+        tagDis2 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(),
+                AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[1]));
+        tagDis3 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(),
+                AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[2]));
+        tagDis4 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(),
+                AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[3]));
+        tagDis5 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(),
+                AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[4]));
+        tagDis6 =
+            PhotonUtils.getDistanceToPose(
+                RobotContainer.drive.getPose(),
+                AllianceFlipUtil.apply(FieldConstants.Reef.centerFaces[5]));
+        break;
+
+      default:
+        break;
+    }
 
     double[] List = {tagDis1, tagDis2, tagDis3, tagDis4, tagDis5, tagDis6};
 
@@ -73,6 +143,80 @@ public class autoAim extends SubsystemBase {
       }
     }
     SmartDashboard.putNumber("minIndex", minIndex);
+
+    switch (onRedTeam) {
+      case 1: // RED
+        switch (minIndex) {
+          case 0:
+            closestPose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_LEFT.get(2));
+            rightSidePose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_RIGHT.get(2));
+            break;
+          case 1:
+            closestPose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_LEFT.get(1));
+            rightSidePose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_RIGHT.get(1));
+            break;
+          case 2:
+            closestPose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_LEFT.get(0));
+            rightSidePose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_RIGHT.get(0));
+            break;
+          case 3:
+            closestPose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_LEFT.get(5));
+            rightSidePose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_RIGHT.get(5));
+            break;
+          case 4:
+            closestPose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_LEFT.get(4));
+            rightSidePose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_RIGHT.get(4));
+            break;
+          case 5:
+            closestPose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_LEFT.get(3));
+            rightSidePose2d = AllianceFlipUtil.apply(FieldPOIs.REEF_LOCATIONS_RIGHT.get(3));
+            break;
+
+          default:
+            closestPose2d = new Pose2d();
+            rightSidePose2d = new Pose2d();
+            break;
+        }
+        break;
+      case 0:
+        switch (minIndex) {
+          case 0:
+            closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(2);
+            rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(2);
+            break;
+          case 1:
+            closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(1);
+            rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(1);
+            break;
+          case 2:
+            closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(0);
+            rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(0);
+            break;
+          case 3:
+            closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(5);
+            rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(5);
+            break;
+          case 4:
+            closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(4);
+            rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(4);
+            break;
+          case 5:
+            closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(3);
+            rightSidePose2d = FieldPOIs.REEF_LOCATIONS_RIGHT.get(3);
+            break;
+
+          default:
+            closestPose2d = new Pose2d();
+            rightSidePose2d = new Pose2d();
+            break;
+        }
+        break;
+
+      default:
+        break;
+    }
+
+    /*
     switch (minIndex) {
       case 0:
         closestPose2d = FieldPOIs.REEF_LOCATIONS_LEFT.get(2);
@@ -110,7 +254,7 @@ public class autoAim extends SubsystemBase {
         rightSidePose2d = new Pose2d();
         pathRotation2d = new Rotation2d();
         break;
-    }
+    } */
 
     SmartDashboard.putNumber("wanted pose x", closestPose2d.getX());
     SmartDashboard.putNumber("wanted pose Y", closestPose2d.getY());
@@ -122,8 +266,6 @@ public class autoAim extends SubsystemBase {
     Logger.recordOutput(
         "wanted pose right",
         rightSidePose2d.rotateAround(rightSidePose2d.getTranslation(), Rotation2d.kCW_Pi_2));
-    Logger.recordOutput(
-        "on the fly path rotation", new Pose2d(closestPose2d.getTranslation(), pathRotation2d));
 
     /*
     switch (minIndex) {

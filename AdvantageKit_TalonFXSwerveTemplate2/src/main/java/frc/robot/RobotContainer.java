@@ -8,6 +8,7 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID;
@@ -213,7 +214,7 @@ public class RobotContainer {
             drive,
             () -> -driver.getRawAxis(1) * Constants.teleopInvert,
             () -> -driver.getRawAxis(0) * Constants.teleopInvert,
-            () -> -driver.getRawAxis(4)));
+            () -> -driver.getRawAxis(2)));
 
     // Testing drive commands
     /*
@@ -234,10 +235,10 @@ public class RobotContainer {
 
     // Reset gyro to 0° when B button is pressed
     buttonB.onTrue(
-        Commands.runOnce(
-                () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
-                drive)
-            .ignoringDisable(true));
+    Commands.runOnce(
+            () -> drive.setPose(new Pose2d(drive.getPose().getTranslation(), new Rotation2d())),
+            drive)
+        .ignoringDisable(true)); 
 
     buttonLB.whileTrue(
         new DeferredCommand(() -> DriveCommands.alightToLeftSide(drive, AUTOAIM), Set.of(drive)));
