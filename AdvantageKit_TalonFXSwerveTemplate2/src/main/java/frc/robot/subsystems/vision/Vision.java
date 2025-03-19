@@ -69,6 +69,11 @@ public class Vision extends SubsystemBase {
   @Override
   public void periodic() {
     Logger.recordOutput(
+        "camera feeder",
+        RobotContainer.drive
+            .getPose()
+            .transformBy(new Transform2d(-0.3, -0.3, Rotation2d.fromDegrees(-90))));
+    Logger.recordOutput(
         "camera reef",
         RobotContainer.drive
             .getPose()
