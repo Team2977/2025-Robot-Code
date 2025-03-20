@@ -5,35 +5,25 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.SuperStructure.minip;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class minipOut extends Command {
-  private minip MINIP;
-  /** Creates a new minipOut. */
-  public minipOut(minip MINIP) {
-    this.MINIP = MINIP;
-    addRequirements(MINIP);
+public class elevatorUpAuto extends Command {
+  /** Creates a new elevatorUpAuto. */
+  public elevatorUpAuto() {
+    // Use addRequirements() here to declare subsystem dependencies.
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {
-    MINIP.scoring = true;
-  }
+  public void initialize() {}
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {
-    MINIP.minipSpit();
-  }
+  public void execute() {}
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {
-    MINIP.stopMotors();
-    MINIP.scoring = false;
-  }
+  public void end(boolean interrupted) {}
 
   // Returns true when the command should end.
   @Override

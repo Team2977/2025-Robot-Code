@@ -16,7 +16,6 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Threads;
@@ -24,6 +23,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
+// import frc.robot.subsystems.SuperStructure.climber;
 import java.util.Optional;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
@@ -127,11 +127,24 @@ public class Robot extends LoggedRobot {
 
   /** This function is called once when the robot is disabled. */
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
+  }
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    SmartDashboard.putNumber("pose X", RobotContainer.drive.getPose().getX());
+    SmartDashboard.putNumber("pose Y", RobotContainer.drive.getPose().getY());
+    SmartDashboard.putNumber(
+        "Pose Rotation", RobotContainer.drive.getPose().getRotation().getDegrees());
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
@@ -142,11 +155,26 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.schedule();
     }
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
   }
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
+  }
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -158,6 +186,13 @@ public class Robot extends LoggedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.cancel();
     }
+    if (alliance.isPresent()) {
+      if (alliance.get() == Alliance.Red) {
+        Constants.invert = -1;
+      } else { // BLUE
+        Constants.invert = 1;
+      }
+    }
   }
 
   /** This function is called periodically during operator control. */
@@ -168,17 +203,22 @@ public class Robot extends LoggedRobot {
     if (alliance.isPresent()) {
       if (alliance.get() == Alliance.Red) {
         ali = true;
-        Constants.invert = 1;
-      } else {
-        ali = false;
         Constants.invert = -1;
+      } else { // BLUE
+        ali = false;
+        Constants.invert = 1;
       }
     }
     SmartDashboard.putBoolean("is red team", ali);
     SmartDashboard.putBoolean("has team", alliance.isPresent());
 
-    robotContainer.CLIMBER.climberMotor.set(
-        MathUtil.applyDeadband(-robotContainer.opperator.getRawAxis(1), 0.1));
+    // climber.climberMotor.set(MathUtil.applyDeadband(RobotContainer.opperator.getRawAxis(1),
+    // 0.1));
+
+    SmartDashboard.putNumber("X pose", RobotContainer.drive.getPose().getX());
+    SmartDashboard.putNumber("Y pose", robotContainer.drive.getPose().getY());
+    SmartDashboard.putNumber("Rota", robotContainer.drive.getPose().getRotation().getDegrees());
+    SmartDashboard.putNumber("invert", Constants.invert);
   }
 
   /** This function is called once when test mode is enabled. */
