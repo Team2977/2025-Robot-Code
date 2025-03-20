@@ -6,7 +6,6 @@ import static frc.robot.subsystems.vision.VisionConstants.robotToCamera0;
 import static frc.robot.subsystems.vision.VisionConstants.robotToCamera1;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -15,17 +14,14 @@ import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.DriveCommands;
-import frc.robot.commands.autoGenerator;
 import frc.robot.commands.minipIntake;
 import frc.robot.commands.minipOut;
 import frc.robot.commands.moveElevator;
 import frc.robot.commands.toggleInverted;
 import frc.robot.generated.TunerConstants;
-import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.SuperStructure.climber;
 import frc.robot.subsystems.SuperStructure.elevator;
 import frc.robot.subsystems.SuperStructure.minip;
@@ -38,7 +34,6 @@ import frc.robot.subsystems.drive.ModuleIOTalonFX;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionIOPhotonVision;
 import frc.robot.subsystems.vision.VisionIOPhotonVisionSim;
-import java.util.Set;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 
 /**
@@ -57,8 +52,8 @@ public class RobotContainer {
   private final elevator ELEVATOR = new elevator();
   private final minip MINIP = new minip();
   public final climber CLIMBER = new climber();
-  private final autoAim AUTOAIM = new autoAim();
-  private final autoGenerator AUTOGENERATOR = new autoGenerator();
+  // private final autoAim AUTOAIM = new autoAim();
+  // private final autoGenerator AUTOGENERATOR = new autoGenerator();
   // Controller
   // private final CommandXboxController controller = new CommandXboxController(0);
   public static final Joystick driver = new Joystick(0);
@@ -155,17 +150,18 @@ public class RobotContainer {
     }
 
     // NamedCommands.registerCommand("autoScoreL4", new autoScoreL4(ELEVATOR, MINIP));
-    NamedCommands.registerCommand(
-        "align left",
-        new DeferredCommand(
-            () -> autoGenerator.autoReefLeft(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
-    NamedCommands.registerCommand(
-        "align right",
-        new DeferredCommand(
-            () -> autoGenerator.autoReefRight(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
-    NamedCommands.registerCommand(
-        "autoMoveElevator", autoGenerator.autoMoveElevator(ELEVATOR, Constants.reefLevels.L4));
-
+    /*
+        NamedCommands.registerCommand(
+            "align left",
+            new DeferredCommand(
+                () -> autoGenerator.autoReefLeft(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
+        NamedCommands.registerCommand(
+            "align right",
+            new DeferredCommand(
+                () -> autoGenerator.autoReefRight(drive, AUTOAIM), Set.of(drive, AUTOAIM)));
+        NamedCommands.registerCommand(
+            "autoMoveElevator", autoGenerator.autoMoveElevator(ELEVATOR, Constants.reefLevels.L4));
+    */
     // Set up auto routines
     autoChooser = new LoggedDashboardChooser<>("Auto Choices", AutoBuilder.buildAutoChooser());
 
@@ -232,6 +228,7 @@ public class RobotContainer {
                 drive)
             .ignoringDisable(true));
 
+    /*
     buttonLB.whileTrue(
         new DeferredCommand(() -> DriveCommands.alightToLeftSide(drive, AUTOAIM), Set.of(drive)));
 
@@ -243,6 +240,7 @@ public class RobotContainer {
 
     buttonX.whileTrue(
         new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
+         */
 
     buttonY.onTrue(new toggleInverted());
 
@@ -254,6 +252,7 @@ public class RobotContainer {
     oppButtonRB.whileTrue(new minipOut(MINIP));
     oppButtonLB.whileTrue(new minipIntake(MINIP));
 
+    /*
     // Keyboard buttons for debugging
     key1.whileTrue(
         new DeferredCommand(
@@ -264,7 +263,7 @@ public class RobotContainer {
     key3.whileTrue(
         new DeferredCommand(() -> DriveCommands.alignToFeederNear(drive), Set.of(drive)));
     key4.whileTrue(new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
-    key4.whileTrue(new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));
+    key4.whileTrue(new DeferredCommand(() -> DriveCommands.alignToFeederFar(drive), Set.of(drive)));*/
   }
 
   /**
