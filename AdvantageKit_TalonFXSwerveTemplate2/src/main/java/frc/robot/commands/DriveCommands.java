@@ -13,6 +13,11 @@
 
 package frc.robot.commands;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.Waypoint;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -30,8 +35,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants;
+import frc.robot.subsystems.SuperStructure.autoAim;
 import frc.robot.subsystems.drive.Drive;
-import frc.robot.subsystems.other.Motor;
+import frc.robot.util.AllianceFlipUtil;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedList;
@@ -68,11 +75,6 @@ public class DriveCommands {
         .getTranslation();
   }
 
-  public static Command TEMPLATE(Drive drive, double someDouble, boolean someBoolean) {
-
-    return Commands.run(() -> {}, drive);
-  }
-
   /**
    * Field relative drive command using two joysticks (controlling linear and angular velocities).
    */
@@ -83,6 +85,7 @@ public class DriveCommands {
       DoubleSupplier omegaSupplier) {
     return Commands.run(
         () -> {
+
           // Get linear velocity
           Translation2d linearVelocity =
               getLinearVelocityFromJoysticks(xSupplier.getAsDouble(), ySupplier.getAsDouble());
@@ -101,7 +104,7 @@ public class DriveCommands {
                   omega * drive.getMaxAngularSpeedRadPerSec());
           boolean isFlipped =
               DriverStation.getAlliance().isPresent()
-                  && DriverStation.getAlliance().get() == Alliance.Red;
+                  && DriverStation.getAlliance().get() == Alliance.Blue;
           drive.runVelocity(
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   speeds,
@@ -111,6 +114,205 @@ public class DriveCommands {
         },
         drive);
   }
+
+  // ################################################ alignn to reef left side
+  /**
+   * @param drive Drive subsystem
+   * @param autoAim AutoAim subsystem
+   * @return pathplanner command to execute for left side
+   */
+  public static Command alightToLeftSide(Drive drive, autoAim autoAim) {
+    Pose2d curPose = drive.getPose();
+    Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.closestPose2d;
+    Rotation2d targetAngle =
+        frc.robot.subsystems.SuperStructure.autoAim.targetAngle(goalPose, drive);
+
+    List<Waypoint> waypoints =
+        PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose.getX(), curPose.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
+
+    // The values are low so if anything goes wrong we can disable the robot
+    // PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
+    PathConstraints constraints =
+        new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
+
+    PathPlannerPath alignmentPath =
+        new PathPlannerPath(
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCW_Pi_2)));
+
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
+  }
+
+  // ################################################ alignn to reef Right side
+  /**
+   * @param drive Drive subsystem
+   * @param autoAim AutoAim subsystem
+   * @return pathplanner command to execute for right side
+   */
+  public static Command alightToRightSide(Drive drive, autoAim autoAim) {
+    Pose2d curPose = drive.getPose();
+    Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.rightSidePose2d;
+    Rotation2d targetAngle =
+        frc.robot.subsystems.SuperStructure.autoAim.targetAngle(goalPose, drive);
+
+    List<Waypoint> waypoints =
+        PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose.getX(), curPose.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
+
+    // The values are low so if anything goes wrong we can disable the robot
+    // PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
+    PathConstraints constraints =
+        new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
+
+    PathPlannerPath alignmentPath =
+        new PathPlannerPath(
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCW_Pi_2)));
+
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
+  }
+
+  // ################################################## testing
+  public static Command testContinuouslyUpdatingPath(Drive drive) {
+    // return new DeferredCommand(() -> autoBuilderSub.updatingPathCommand(drive), Set.of(drive));
+
+    Pose2d curPose = drive.getPose();
+    Pose2d goalPose = frc.robot.subsystems.SuperStructure.autoAim.rightSidePose2d;
+    Rotation2d targetAngle = autoAim.targetAngle(goalPose, drive);
+
+    List<Waypoint> waypoints =
+        PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose.getX(), curPose.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
+
+    // The values are low so if anything goes wrong we can disable the robot
+    // PathConstraints constraints = new PathConstraints(0.5, 1, 2 * Math.PI, 4 * Math.PI);
+    PathConstraints constraints =
+        new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
+
+    PathPlannerPath alignmentPath =
+        new PathPlannerPath(
+            waypoints,
+            constraints,
+            null,
+            new GoalEndState(0, goalPose.getRotation().plus(Rotation2d.kCCW_90deg)));
+
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
+  }
+
+  // ##################################### ALIGN TO FEEDER FAR
+  /**
+   * @param drive Drive subsystem
+   * @return pathplanner command to drive to nearest feederstation at the far point
+   */
+  public static Command alignToFeederFar(Drive drive) {
+    Pose2d leftFeederFar;
+    Pose2d rightFeederFar;
+
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      // RED
+      leftFeederFar = AllianceFlipUtil.apply(Constants.automaticAlingment.feederFarLeft);
+      rightFeederFar = AllianceFlipUtil.apply(Constants.automaticAlingment.feederFarRight);
+    } else {
+      // BLUE
+      leftFeederFar = Constants.automaticAlingment.feederFarLeft;
+      rightFeederFar = Constants.automaticAlingment.feederFarRight;
+    }
+
+    Pose2d curPose2d = drive.getPose();
+    Pose2d goalPose = curPose2d;
+
+    double leftDis = PhotonUtils.getDistanceToPose(curPose2d, leftFeederFar);
+    double rightDis = PhotonUtils.getDistanceToPose(curPose2d, rightFeederFar);
+
+    // left
+    if (leftDis < rightDis) {
+      goalPose = leftFeederFar;
+    } else {
+      goalPose = rightFeederFar;
+    }
+    Rotation2d targetAngle = autoAim.targetAngle(goalPose, drive);
+    List<Waypoint> waypoints =
+        PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose2d.getX(), curPose2d.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
+
+    PathConstraints constraints =
+        new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
+
+    PathPlannerPath alignmentPath =
+        new PathPlannerPath(
+            waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
+
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
+  }
+
+  // ############################################ alighn to reef near
+  /**
+   * @param drive Drive subsystem
+   * @return pathplanner command to drive to the nearest feeder station at the near point
+   */
+  public static Command alignToFeederNear(Drive drive) {
+    Pose2d leftFeederNear;
+    Pose2d rightFeederNear;
+
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      // RED
+      leftFeederNear = AllianceFlipUtil.apply(Constants.automaticAlingment.feederNearLeft);
+      rightFeederNear = AllianceFlipUtil.apply(Constants.automaticAlingment.feederNearRight);
+    } else {
+      // BLUE
+      leftFeederNear = Constants.automaticAlingment.feederNearLeft;
+      rightFeederNear = Constants.automaticAlingment.feederFarRight;
+    }
+
+    Pose2d curPose2d = drive.getPose();
+    Pose2d goalPose = curPose2d;
+
+    double leftDis = PhotonUtils.getDistanceToPose(curPose2d, leftFeederNear);
+    double rightDis = PhotonUtils.getDistanceToPose(curPose2d, rightFeederNear);
+
+    if (leftDis < rightDis) { // Left
+      goalPose = leftFeederNear;
+    } else { // Right
+      goalPose = rightFeederNear;
+    }
+
+    Rotation2d targetAngle = autoAim.targetAngle(goalPose, drive);
+    List<Waypoint> waypoints =
+        PathPlannerPath.waypointsFromPoses(
+            new Pose2d(curPose2d.getX(), curPose2d.getY(), targetAngle),
+            new Pose2d(goalPose.getX(), goalPose.getY(), targetAngle.times(-1)));
+
+    PathConstraints constraints =
+        new PathConstraints(4.18, 5, Units.degreesToRadians(500), Units.degreesToRadians(700));
+
+    PathPlannerPath alignmentPath =
+        new PathPlannerPath(
+            waypoints, constraints, null, new GoalEndState(0, goalPose.getRotation()));
+
+    return DriverStation.getAlliance().get() == Alliance.Red
+        ? AutoBuilder.followPath(alignmentPath.flipPath()) // Mirror for Red
+        : AutoBuilder.followPath(alignmentPath);
+  }
+
   // #################################### JOYSTICK DRIVE AT ANGLE
   // ###################################################################################
   /**
@@ -153,7 +355,7 @@ public class DriveCommands {
                       omega);
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
-                      && DriverStation.getAlliance().get() == Alliance.Red;
+                      && DriverStation.getAlliance().get() == Alliance.Blue;
               drive.runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       speeds,
@@ -229,7 +431,7 @@ public class DriveCommands {
                       omega);
               boolean isFlipped =
                   DriverStation.getAlliance().isPresent()
-                      && DriverStation.getAlliance().get() == Alliance.Red;
+                      && DriverStation.getAlliance().get() == Alliance.Blue;
               drive.runVelocity(
                   ChassisSpeeds.fromFieldRelativeSpeeds(
                       speeds,
@@ -243,197 +445,6 @@ public class DriveCommands {
         .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()))
         .beforeStarting(() -> xController.reset(drive.getPose().getX()))
         .beforeStarting(() -> yController.reset(drive.getPose().getY()));
-  }
-
-  // ##################################### ALIGN TO FEEDER
-  // ############################################################
-  public static Command alignToFeederCom(
-      Drive drive,
-      DoubleSupplier xSupplier,
-      DoubleSupplier ySupplier,
-      DoubleSupplier omegaSupplier) {
-
-    double kp = 2;
-    double ki = 0;
-    double kd = 1;
-    // create PID controller for X direction
-    ProfiledPIDController xController =
-        new ProfiledPIDController(
-            kp, ki, kd, new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, 20));
-    xController.enableContinuousInput(-Math.PI, Math.PI);
-
-    // create PID controller for Y direction
-    ProfiledPIDController yController =
-        new ProfiledPIDController(
-            kp, ki, kd, new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, 20));
-    yController.enableContinuousInput(-Math.PI, Math.PI);
-
-    // Create PID controller
-    ProfiledPIDController angleController =
-        new ProfiledPIDController(
-            ANGLE_KP,
-            0.0,
-            ANGLE_KD,
-            new TrapezoidProfile.Constraints(ANGLE_MAX_VELOCITY, ANGLE_MAX_ACCELERATION));
-    angleController.enableContinuousInput(-Math.PI, Math.PI);
-
-    // Construct command
-    return Commands.run(
-            () -> {
-              double XGoalRight = 1.15;
-              double YGoalRight = 1.17;
-              double XGoalLeft = 1.18;
-              double YGoalLeft = 6.94;
-
-              // if statement to check if the robot is nearer than 4 meters from the feeder
-              if (drive.poseEstimator.getEstimatedPosition().getX() <= 4) {
-
-                var rightFeederdis =
-                    PhotonUtils.getDistanceToPose(
-                        drive.poseEstimator.getEstimatedPosition(),
-                        /*layout.getTagPose(2).get().toPose2d()*/ new Pose2d(
-                            new Translation2d(XGoalRight, YGoalRight), new Rotation2d()));
-
-                var leftFeederdis =
-                    PhotonUtils.getDistanceToPose(
-                        drive.poseEstimator.getEstimatedPosition(),
-                        /*layout.getTagPose(1).get().toPose2d()*/ new Pose2d(
-                            new Translation2d(XGoalLeft, YGoalLeft), new Rotation2d()));
-
-                @SuppressWarnings("unused")
-                Pose2d pose = new Pose2d();
-                double XPoseVal = 0;
-                double YPoseVal = 0;
-                double angle = 0;
-                double XVel = 0;
-                double YVel = 0;
-                double omega = 0;
-                if (rightFeederdis < leftFeederdis
-                    && drive.poseEstimator.getEstimatedPosition().getX() <= 4) {
-                  // goes to right feeder station
-                  pose =
-                      new Pose2d(
-                          new Translation2d(XGoalRight, YGoalRight),
-                          new Rotation2d(Math.toRadians(-126)));
-                  XPoseVal = XGoalRight;
-                  YPoseVal = YGoalRight;
-                  angle = -126;
-
-                  // Calculate angular speed
-                  omega =
-                      angleController.calculate(
-                          drive.poseEstimator.getEstimatedPosition().getRotation().getRadians(),
-                          Math.toRadians(angle));
-
-                  // calcualate linear velocity
-                  XVel =
-                      xController.calculate(
-                          drive.poseEstimator.getEstimatedPosition().getX(), XPoseVal);
-
-                  YVel =
-                      yController.calculate(
-                          drive.poseEstimator.getEstimatedPosition().getY(), YPoseVal);
-
-                } else if (drive.poseEstimator.getEstimatedPosition().getX() <= 4) {
-                  // goes to left feeder station
-                  pose =
-                      new Pose2d(
-                          new Translation2d(XGoalLeft, YGoalLeft),
-                          new Rotation2d(Math.toRadians(126)));
-                  XPoseVal = XGoalLeft;
-                  YPoseVal = YGoalLeft;
-                  angle = 126;
-                  // Calculate angular speed
-                  omega =
-                      angleController.calculate(
-                          drive.poseEstimator.getEstimatedPosition().getRotation().getRadians(),
-                          Math.toRadians(126));
-
-                  // calcualate linear velocity
-                  XVel =
-                      xController.calculate(
-                          drive.poseEstimator.getEstimatedPosition().getX(), XPoseVal);
-
-                  YVel =
-                      yController.calculate(
-                          drive.poseEstimator.getEstimatedPosition().getY(), YPoseVal);
-                }
-
-                // numbers outputed to smartdashboard for debugging
-                SmartDashboard.putNumber("xController", XVel);
-                SmartDashboard.putNumber("yController", YVel);
-                SmartDashboard.putNumber("omegaController", omega);
-                SmartDashboard.putNumber(
-                    "x Pose", drive.poseEstimator.getEstimatedPosition().getX());
-                SmartDashboard.putNumber(
-                    "y Pose", drive.poseEstimator.getEstimatedPosition().getY());
-                SmartDashboard.putNumber("left distance", leftFeederdis);
-                SmartDashboard.putNumber("rightfeeder dis", rightFeederdis);
-
-                Translation2d linearVelocity = getLinearVelocityFromJoysticks(XVel, YVel);
-                // Convert to field relative speeds & send command
-                ChassisSpeeds speeds =
-                    new ChassisSpeeds(
-                        -linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                        -linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                        omega);
-                boolean isFlipped =
-                    DriverStation.getAlliance().isPresent()
-                        && DriverStation.getAlliance().get() == Alliance.Red;
-                drive.runVelocity(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                        speeds,
-                        isFlipped
-                            ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                            : drive.getRotation()));
-                // else for when it is father than that
-              } else {
-
-                // Get linear velocity
-                Translation2d linearVelocity =
-                    getLinearVelocityFromJoysticks(
-                        xSupplier.getAsDouble(), ySupplier.getAsDouble());
-
-                // Apply rotation deadband
-                double omega = MathUtil.applyDeadband(omegaSupplier.getAsDouble(), DEADBAND);
-
-                // Square rotation value for more precise control
-                omega = Math.copySign(omega * omega, omega);
-
-                // Convert to field relative speeds & send command
-                ChassisSpeeds speeds =
-                    new ChassisSpeeds(
-                        -linearVelocity.getX() * drive.getMaxLinearSpeedMetersPerSec(),
-                        -linearVelocity.getY() * drive.getMaxLinearSpeedMetersPerSec(),
-                        omega * drive.getMaxAngularSpeedRadPerSec());
-                boolean isFlipped =
-                    DriverStation.getAlliance().isPresent()
-                        && DriverStation.getAlliance().get() == Alliance.Red;
-                drive.runVelocity(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                        speeds,
-                        isFlipped
-                            ? drive.getRotation().plus(new Rotation2d(Math.PI))
-                            : drive.getRotation()));
-              }
-            },
-            drive)
-
-        // Reset PID controllers when command starts
-        .beforeStarting(() -> angleController.reset(drive.getRotation().getRadians()))
-        .beforeStarting(() -> xController.reset(drive.getPose().getX()))
-        .beforeStarting(() -> yController.reset(drive.getPose().getY()));
-  }
-
-  public static Command moveMotorTestCom(Motor motor) {
-
-    return Commands.run(
-            () -> {
-              motor.runMotor(4);
-              SmartDashboard.putBoolean("comand on", true);
-            },
-            motor)
-        .finallyDo(() -> SmartDashboard.putBoolean("comand on", false));
   }
 
   // ###################################### FEEDFORWARD

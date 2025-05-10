@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.PhotonCamera;
 
 /** IO implementation for real PhotonVision hardware. */
@@ -61,6 +62,7 @@ public class VisionIOPhotonVision implements VisionIO {
       // Add pose observation
       if (result.multitagResult.isPresent()) { // Multitag result
         var multitagResult = result.multitagResult.get();
+        Logger.recordOutput("camera", result.multitagResult.get().estimatedPose);
 
         // Calculate robot pose
         Transform3d fieldToCamera = multitagResult.estimatedPose.best;

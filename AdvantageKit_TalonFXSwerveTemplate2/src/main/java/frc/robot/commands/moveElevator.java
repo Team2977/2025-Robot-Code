@@ -15,7 +15,12 @@ import frc.robot.subsystems.SuperStructure.elevator;
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class moveElevator extends Command {
   private final ProfiledPIDController controller =
-      new ProfiledPIDController(0.25, 0.05, 0, new TrapezoidProfile.Constraints(100, 200));
+      new ProfiledPIDController(
+          Constants.elevatorConstants.kp,
+          Constants.elevatorConstants.ki,
+          Constants.elevatorConstants.kd,
+          new TrapezoidProfile.Constraints(
+              Constants.elevatorConstants.maxVel, Constants.elevatorConstants.maxAccel));
   private elevator ELEVATOR;
   private double Goal;
   private boolean finishCommand;
@@ -28,7 +33,7 @@ public class moveElevator extends Command {
 
   @Override
   public void initialize() {
-    controller.reset(ELEVATOR.leader.getPosition().getValueAsDouble());
+    controller.reset(elevator.leader.getPosition().getValueAsDouble());
     finishCommand = false;
   }
 
@@ -36,7 +41,7 @@ public class moveElevator extends Command {
   public void execute() {
 
     Constants.elevatorGoal =
-        controller.calculate(ELEVATOR.leader.getPosition().getValueAsDouble(), Goal);
+        controller.calculate(elevator.leader.getPosition().getValueAsDouble(), Goal);
     SmartDashboard.putBoolean("workingiskhdjlj", true);
 
     SmartDashboard.putNumber("ele goals", controller.getGoal().position);

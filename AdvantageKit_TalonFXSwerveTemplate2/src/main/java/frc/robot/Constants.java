@@ -13,6 +13,9 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -21,6 +24,50 @@ import edu.wpi.first.wpilibj.RobotBase;
  * (log replay from a file).
  */
 public final class Constants {
+  public static int teleopInvert = 1;
+
+  public static class elevatorConstants {
+    public static final double kp = 0.25;
+    public static final double ki = 0.05;
+    public static final double kd = 0;
+    public static final double maxVel = 100;
+    public static final double maxAccel = 200;
+  }
+
+  public static class automaticAlingment {
+    public static final Pose2d feederFarLeft =
+        new Pose2d(new Translation2d(1.54, 7.36), Rotation2d.fromDegrees(-144));
+    public static final Pose2d feederFarRight =
+        new Pose2d(new Translation2d(1.63, 0.64), Rotation2d.fromDegrees(144));
+
+    public static final Pose2d feederNearLeft =
+        new Pose2d(new Translation2d(0.74, 6.81), Rotation2d.fromDegrees(-144));
+    public static final Pose2d feederNearRight =
+        new Pose2d(new Translation2d(0.67, 1.31), Rotation2d.fromDegrees(144));
+  }
+
+  public static class autodrivingStuff {
+
+    public static boolean autoDrive = false;
+    public static double xVal = 0;
+    public static double yVal = 0;
+    public static double omegaVal = 0;
+
+    public static int tag1 = 6;
+    public static int tag2 = 7;
+    public static int tag3 = 8;
+    public static int tag4 = 9;
+    public static int tag5 = 10;
+    public static int tag6 = 11;
+  }
+
+  public static class reefLevels {
+    public static final double L1 = 0;
+    public static final double L2 = 54;
+    public static final double L3 = 115;
+    public static final double L4 = 228;
+  }
+
   public static double elevatorGoal = 0;
   public static final double loopPeriodSecs = 0.02;
   public static int invert = 1;

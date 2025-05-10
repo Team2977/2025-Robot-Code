@@ -24,8 +24,6 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
@@ -42,6 +40,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -53,12 +52,10 @@ import frc.robot.Constants;
 import frc.robot.Constants.Mode;
 import frc.robot.generated.TunerConstants;
 import frc.robot.util.LocalADStarAK;
-import java.io.IOException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-import org.photonvision.PhotonUtils;
 
 public class Drive extends SubsystemBase {
   public static AprilTagFieldLayout layout;
@@ -75,7 +72,7 @@ public class Drive extends SubsystemBase {
               Math.hypot(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)));
 
   // PathPlanner config constants
-  private static final double ROBOT_MASS_KG = 74.088;
+  private static final double ROBOT_MASS_KG = Units.lbsToKilograms(100);
   private static final double ROBOT_MOI = 6.883;
   private static final double WHEEL_COF = 1.2;
   private static final RobotConfig PP_CONFIG =
@@ -139,6 +136,14 @@ public class Drive extends SubsystemBase {
             new PIDConstants(5.0, 0.0, 0.0), new PIDConstants(5.0, 0.0, 0.0)),
         PP_CONFIG,
         () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red,
+        /*() -> {
+          if (DriverStation.getAlliance().isPresent()) {
+            return DriverStation.getAlliance().get() == DriverStation.Alliance.Red;
+          } else {
+            return false;
+          }
+        },*/
+        // () -> true,
         this);
     Pathfinding.setPathfinder(new LocalADStarAK());
     PathPlannerLogging.setLogActivePathCallback(
@@ -379,35 +384,5 @@ public class Drive extends SubsystemBase {
       new Translation2d(TunerConstants.BackLeft.LocationX, TunerConstants.BackLeft.LocationY),
       new Translation2d(TunerConstants.BackRight.LocationX, TunerConstants.BackRight.LocationY)
     };
-  }
-
-  public Pose2d getfeederPose() {
-    try {
-      layout = AprilTagFieldLayout.loadFromResource(AprilTagFields.k2024Crescendo.m_resourceFile);
-      layout.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
-    } catch (IOException e) {
-      DriverStation.reportError("Failed to load AprilTagFieldLayout", e.getStackTrace());
-      layout = null;
-    }
-
-    var rightFeederdis =
-        PhotonUtils.getDistanceToPose(
-            poseEstimator.getEstimatedPosition(), layout.getTagPose(2).get().toPose2d());
-
-    var leftFeederdis =
-        PhotonUtils.getDistanceToPose(
-            poseEstimator.getEstimatedPosition(), layout.getTagPose(1).get().toPose2d());
-
-    Pose2d pose = new Pose2d();
-
-    if (rightFeederdis > leftFeederdis) {
-      // goes to right feeder station
-      pose = new Pose2d(new Translation2d(1.14, 1.07), new Rotation2d(Math.toRadians(-126)));
-    } else /*if (leftFeederdis >= rightFeederdis)*/ {
-      // goes to left feeder station
-      pose = new Pose2d(new Translation2d(1.22, 7.07), new Rotation2d(Math.toRadians(126)));
-    }
-
-    return pose;
   }
 }

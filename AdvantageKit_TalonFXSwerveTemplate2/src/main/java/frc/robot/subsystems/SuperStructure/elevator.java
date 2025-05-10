@@ -4,9 +4,10 @@
 
 package frc.robot.subsystems.SuperStructure;
 
+import static frc.robot.util.PhoenixUtil.tryUntilOk;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -17,18 +18,16 @@ import com.ctre.phoenix6.signals.StaticFeedforwardSignValue;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class elevator extends SubsystemBase {
   /** Creates a new elevator. */
-  public static final TalonFX leader = new TalonFX(6, "rio");
+  public static final TalonFX leader = new TalonFX(6, "driveBase");
 
-  private static final TalonFX follower = new TalonFX(7, "rio");
+  private static final TalonFX follower = new TalonFX(7, "driveBase");
 
-  @AutoLogOutput
-  private static final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
-  // motion magic does math in the background, runs on motor
+  // motion magic does math in the background, runs on motor. Not used. we use PID loops instead.
+  // private static final MotionMagicVoltage motionMagicRequest = new MotionMagicVoltage(0);
 
   private Follower slave = new Follower(leader.getDeviceID(), true);
 
@@ -66,15 +65,14 @@ public class elevator extends SubsystemBase {
     config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
 
-    leader.getConfigurator().apply(config);
-    follower.getConfigurator().apply(config);
+    tryUntilOk(5, () -> leader.getConfigurator().apply(config));
+    tryUntilOk(5, () -> follower.getConfigurator().apply(config));
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
 
-    // leader.setControl(motionMagicRequest.withPosition(Constants.elevatorGoal));
     leader.set(Constants.elevatorGoal);
     follower.setControl(slave);
 
@@ -84,13 +82,4 @@ public class elevator extends SubsystemBase {
     SmartDashboard.putNumber("LeaderPosition Data", leader.getPosition().getValueAsDouble());
     SmartDashboard.putNumber("Elevator Goal", Constants.elevatorGoal);
   }
-
-  /*public void runToPosition(double Goal) {
-
-    leader.setControl(motionMagicRequest.withPosition(Goal));
-     follower.setControl(slave);
-
-     SmartDashboard.putNumber("Goal", Goal);
-  }
-  */
 }

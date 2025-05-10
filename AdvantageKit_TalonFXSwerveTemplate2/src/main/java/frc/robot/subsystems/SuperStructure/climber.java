@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.SuperStructure;
 
+import static frc.robot.util.PhoenixUtil.tryUntilOk;
+
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -18,19 +20,18 @@ public class climber extends SubsystemBase {
   public climber() {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
     config.Feedback.SensorToMechanismRatio = 144;
     config.SoftwareLimitSwitch.ForwardSoftLimitEnable = true;
     config.SoftwareLimitSwitch.ForwardSoftLimitThreshold = 3.5;
     config.SoftwareLimitSwitch.ReverseSoftLimitEnable = true;
     config.SoftwareLimitSwitch.ReverseSoftLimitThreshold = 0;
 
-    climberMotor.getConfigurator().apply(config);
+    tryUntilOk(5, () -> climberMotor.getConfigurator().apply(config));
   }
 
   @Override
   public void periodic() {
-    // climberMotor.set(RobotContainer.opperator.getRawAxis(1));
+    // motor speed set in robot.java
     SmartDashboard.putNumber("climber number", climberMotor.getPosition().getValueAsDouble());
   }
 }

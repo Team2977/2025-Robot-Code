@@ -16,21 +16,25 @@ package frc.robot;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.DriveMotorArrangement;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants.SteerMotorArrangement;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.generated.TunerConstants;
-import java.util.Optional;
+import frc.robot.subsystems.SuperStructure.climber;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
+// import frc.robot.subsystems.SuperStructure.climber;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to
@@ -41,7 +45,7 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 public class Robot extends LoggedRobot {
   private Command autonomousCommand;
   private RobotContainer robotContainer;
-  public static Optional<Alliance> alliance = DriverStation.getAlliance();
+  public static final Field2d field = new Field2d();
 
   public Robot() {
     // Record metadata
@@ -131,7 +135,12 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically when disabled. */
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    SmartDashboard.putNumber("pose X", RobotContainer.drive.getPose().getX());
+    SmartDashboard.putNumber("pose Y", RobotContainer.drive.getPose().getY());
+    SmartDashboard.putNumber(
+        "Pose Rotation", RobotContainer.drive.getPose().getRotation().getDegrees());
+  }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
@@ -146,7 +155,9 @@ public class Robot extends LoggedRobot {
 
   /** This function is called periodically during autonomous. */
   @Override
-  public void autonomousPeriodic() {}
+  public void autonomousPeriodic() {
+    Logger.recordOutput("Odometry/autoPose", field.getRobotPose());
+  }
 
   /** This function is called once when teleop is enabled. */
   @Override
@@ -163,22 +174,45 @@ public class Robot extends LoggedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
-    boolean ali = false;
-
-    if (alliance.isPresent()) {
-      if (alliance.get() == Alliance.Red) {
-        ali = true;
-        Constants.invert = 1;
-      } else {
-        ali = false;
-        Constants.invert = -1;
-      }
+    if (DriverStation.getAlliance().isPresent()
+        && DriverStation.getAlliance().get() == Alliance.Red) {
+      SmartDashboard.putBoolean("Red", true);
+    } else {
+      SmartDashboard.putBoolean("Red", false);
     }
-    SmartDashboard.putBoolean("is red team", ali);
-    SmartDashboard.putBoolean("has team", alliance.isPresent());
 
-    robotContainer.CLIMBER.climberMotor.set(
-        MathUtil.applyDeadband(-robotContainer.opperator.getRawAxis(1), 0.1));
+    climber.climberMotor.set(MathUtil.applyDeadband(RobotContainer.opperator.getRawAxis(1), 0.1));
+
+    SmartDashboard.putNumber("X pose", RobotContainer.drive.getPose().getX());
+    SmartDashboard.putNumber("Y pose", RobotContainer.drive.getPose().getY());
+    SmartDashboard.putNumber("Rota", RobotContainer.drive.getPose().getRotation().getDegrees());
+    SmartDashboard.putNumber("invert", Constants.invert);
+
+    // For pathplanning
+    SmartDashboard.putData("Field", field);
+    // Logging callback for current robot pose
+    PathPlannerLogging.setLogCurrentPoseCallback(
+        (pose) -> {
+          // Do whatever you want with the pose here
+          field.setRobotPose(pose);
+        });
+    Logger.recordOutput("Odometry/autoPose", field.getRobotPose());
+
+    // Logging callback for target robot pose
+    PathPlannerLogging.setLogTargetPoseCallback(
+        (pose) -> {
+          // Do whatever you want with the pose here
+          field.getObject("target pose").setPose(pose);
+        });
+
+    // Logging callback for the active path, this is sent as a list of poses
+    PathPlannerLogging.setLogActivePathCallback(
+        (poses) -> {
+          // Do whatever you want with the poses here
+          field.getObject("path").setPoses(poses);
+        });
+
+    field.setRobotPose(RobotContainer.drive.getPose());
   }
 
   /** This function is called once when test mode is enabled. */
